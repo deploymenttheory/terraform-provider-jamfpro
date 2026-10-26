@@ -24,8 +24,8 @@ const (
 
 type UserGroupAndOr string
 
-// ResourceJamfProUserGroups defines the schema and CRUD operations for managing Jamf Pro User Groups in Terraform.
-func ResourceJamfProUserGroups() *schema.Resource {
+// resourceSchema defines the schema and CRUD operations for managing Jamf Pro User Groups in Terraform.
+func resourceSchema() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: create,
 		ReadContext:   readWithCleanup,
@@ -122,15 +122,16 @@ func ResourceJamfProUserGroups() *schema.Resource {
 				},
 			},
 			"assigned_user_ids": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "assigned computer by ids",
+				Computed:    true,
+				Description: "Complete user membership by ID. When omitted, membership is read from the API; use operation blocks for incremental changes.",
 				Elem: &schema.Schema{
 					Type: schema.TypeInt,
 				},
 			},
 			"user_additions": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Users added to the user group.",
 				Elem: &schema.Resource{
@@ -138,7 +139,7 @@ func ResourceJamfProUserGroups() *schema.Resource {
 				},
 			},
 			"user_deletions": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Users removed from the user group.",
 				Elem: &schema.Resource{
