@@ -27,11 +27,13 @@ func getPolicySchemaScript() *schema.Resource {
 			},
 			"parameter4": {
 				Type:        schema.TypeString,
+				Sensitive:   true,
 				Optional:    true,
 				Description: "Custom parameter 4 for the script.",
 			},
 			"parameter5": {
 				Type:        schema.TypeString,
+				Sensitive:   true,
 				Description: "Custom parameter 5 for the script.",
 				Optional:    true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
@@ -40,34 +42,40 @@ func getPolicySchemaScript() *schema.Resource {
 			},
 			"parameter6": {
 				Type:        schema.TypeString,
+				Sensitive:   true,
 				Optional:    true,
 				Description: "Custom parameter 6 for the script.",
 			},
 			"parameter7": {
 				Type:        schema.TypeString,
+				Sensitive:   true,
 				Optional:    true,
 				Default:     "",
 				Description: "Custom parameter 7 for the script.",
 			},
 			"parameter8": {
 				Type:        schema.TypeString,
+				Sensitive:   true,
 				Optional:    true,
 				Default:     "",
 				Description: "Custom parameter 8 for the script.",
 			},
 			"parameter9": {
 				Type:        schema.TypeString,
+				Sensitive:   true,
 				Optional:    true,
 				Description: "Custom parameter 9 for the script.",
 			},
 			"parameter10": {
 				Type:        schema.TypeString,
+				Sensitive:   true,
 				Optional:    true,
 				Default:     "",
 				Description: "Custom parameter 10 for the script.",
 			},
 			"parameter11": {
 				Type:        schema.TypeString,
+				Sensitive:   true,
 				Optional:    true,
 				Default:     "",
 				Description: "Custom parameter 11 for the script.",

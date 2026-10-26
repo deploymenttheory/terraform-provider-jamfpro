@@ -478,14 +478,14 @@ Optional:
 Optional:
 
 - `id` (String) Unique identifier of the script.
-- `parameter10` (String) Custom parameter 10 for the script.
-- `parameter11` (String) Custom parameter 11 for the script.
-- `parameter4` (String) Custom parameter 4 for the script.
-- `parameter5` (String) Custom parameter 5 for the script.
-- `parameter6` (String) Custom parameter 6 for the script.
-- `parameter7` (String) Custom parameter 7 for the script.
-- `parameter8` (String) Custom parameter 8 for the script.
-- `parameter9` (String) Custom parameter 9 for the script.
+- `parameter10` (String, Sensitive) Custom parameter 10 for the script.
+- `parameter11` (String, Sensitive) Custom parameter 11 for the script.
+- `parameter4` (String, Sensitive) Custom parameter 4 for the script.
+- `parameter5` (String, Sensitive) Custom parameter 5 for the script.
+- `parameter6` (String, Sensitive) Custom parameter 6 for the script.
+- `parameter7` (String, Sensitive) Custom parameter 7 for the script.
+- `parameter8` (String, Sensitive) Custom parameter 8 for the script.
+- `parameter9` (String, Sensitive) Custom parameter 9 for the script.
 - `priority` (String) Execution priority of the script.
 
 
