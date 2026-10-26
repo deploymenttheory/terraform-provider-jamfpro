@@ -42,18 +42,16 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceUserGroup) diag.D
 
 	d.Set("criteria", criteria)
 
+	// Smart group membership is derived from criteria, so record it as empty.
+	// Leaving the computed set null would plan it as unknown after upgrading v0 state.
+	var userIDStrList []int
 	if !resp.IsSmart {
-		var userIDStrList []int
-		if len(resp.Users) > 0 {
-			for _, v := range resp.Users {
-				userIDStrList = append(userIDStrList, v.ID)
-			}
+		for _, v := range resp.Users {
+			userIDStrList = append(userIDStrList, v.ID)
 		}
-
-		err := d.Set("assigned_user_ids", userIDStrList)
-		if err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
+	}
+	if err := d.Set("assigned_user_ids", userIDStrList); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
 	// Addition and deletion blocks are request operations, not response membership.

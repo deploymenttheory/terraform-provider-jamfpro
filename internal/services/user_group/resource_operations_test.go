@@ -88,3 +88,26 @@ func TestFailedOperationDoesNotBecomeSubmittedState(t *testing.T) {
 	require.NotNil(t, state)
 	require.Equal(t, prior.Attributes, state.Attributes)
 }
+
+func TestSmartGroupReadDoesNotPlanUnknownMembership(t *testing.T) {
+	r := ResourceJamfProUserGroups()
+	criterion := map[string]any{"name": "Username", "priority": 0, "and_or": "and", "search_type": "like", "value": "test"}
+	input := map[string]any{"name": "smart", "is_smart": true, "site_id": -1, "criteria": []any{criterion}}
+	// v0 state for a smart group has no assigned_user_ids value.
+	data := schema.TestResourceDataRaw(t, resourceV0().Schema, input)
+	data.SetId("42")
+	data = r.Data(data.State())
+	response := &jamfpro.ResourceUserGroup{
+		ID:       42,
+		Name:     "smart",
+		IsSmart:  true,
+		Criteria: []jamfpro.SharedSubsetCriteria{{Name: "Username", Priority: 0, AndOr: "and", SearchType: "like", Value: "test"}},
+		Users:    []jamfpro.UserGroupSubsetUserItem{{ID: 4}},
+	}
+	response.Site = sharedschemas.ConstructSharedResourceSite(-1)
+	require.Empty(t, updateState(data, response))
+	require.Equal(t, 0, data.Get("assigned_user_ids").(*schema.Set).Len())
+	diff, err := r.Diff(context.Background(), data.State(), terraform.NewResourceConfigRaw(input), nil)
+	require.NoError(t, err)
+	require.True(t, diff == nil || diff.Empty(), "unexpected diff: %v", diff)
+}
