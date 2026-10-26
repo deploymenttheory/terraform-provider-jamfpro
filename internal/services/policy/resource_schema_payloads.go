@@ -34,13 +34,13 @@ func getPolicySchemaPayloads() *schema.Resource {
 				Elem:        getPolicySchemaScript(),
 			},
 			"printers": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Printers settings of the policy.",
 				Elem:        getPolicySchemaPrinter(),
 			},
 			"dock_items": {
-				Type:        schema.TypeSet,
+				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Dock items settings of the policy.",
 				Elem:        getPolicySchemaDockItems(),

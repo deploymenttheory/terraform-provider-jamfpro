@@ -102,6 +102,41 @@ func reversePolicyCollections(value any) {
 	}
 }
 
+// restoreOrderedPolicyLists undoes the reversal for blocks whose order Jamf Pro stores.
+func restoreOrderedPolicyLists(input map[string]any) {
+	payload := input["payloads"].([]any)[0].(map[string]any)
+	for _, name := range []string{"printers", "dock_items"} {
+		items := payload[name].([]any)
+		for left, right := 0, len(items)-1; left < right; left, right = left+1, right-1 {
+			items[left], items[right] = items[right], items[left]
+		}
+	}
+}
+
+func TestPolicyOrderedListsKeepConfiguredOrder(t *testing.T) {
+	r := ResourceJamfProPolicies()
+	r.CustomizeDiff = nil // Isolate schema diffing from live LDAP validation.
+	input := policySetFixture()
+	data := schema.TestResourceDataRaw(t, r.Schema, input)
+	data.SetId("42")
+	var payload jamfpro.ResourcePolicy
+	constructPayloadPrinters(data, &payload)
+	constructPayloadDockItems(data, &payload)
+	require.Equal(t, []string{"Printer B", "Printer A"}, []string{payload.Printers.Printer[0].Name, payload.Printers.Printer[1].Name})
+	require.Equal(t, []string{"Dock B", "Dock A"}, []string{payload.DockItems[0].Name, payload.DockItems[1].Name})
+	for _, name := range []string{"printers", "dock_items"} {
+		t.Run(name, func(t *testing.T) {
+			input := policySetFixture()
+			items := input["payloads"].([]any)[0].(map[string]any)[name].([]any)
+			items[0], items[1] = items[1], items[0]
+			diff, err := r.Diff(context.Background(), data.State(), terraform.NewResourceConfigRaw(input), nil)
+			require.NoError(t, err)
+			require.NotNil(t, diff)
+			require.False(t, diff.Empty(), "reordering %s must update the policy", name)
+		})
+	}
+}
+
 func TestPolicySetReorderingAndChanges(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
@@ -118,6 +153,7 @@ func TestPolicySetReorderingAndChanges(t *testing.T) {
 			data := schema.TestResourceDataRaw(t, tc.resource.Schema, input)
 			data.SetId("42")
 			reversePolicyCollections(input)
+			restoreOrderedPolicyLists(input)
 			diff, err := tc.resource.Diff(context.Background(), data.State(), terraform.NewResourceConfigRaw(input), nil)
 			require.NoError(t, err)
 			require.Equal(t, tc.wantDiff, diff != nil && !diff.Empty())

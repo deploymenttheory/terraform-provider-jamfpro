@@ -233,8 +233,6 @@ or import is required. Other ordered lists and singleton blocks are unchanged.
 The following `jamfpro_policy` blocks now use unordered sets:
 
 - `payloads.scripts`
-- `payloads.printers`
-- `payloads.dock_items`
 - `payloads.packages.package`
 - `payloads.account_maintenance.local_accounts.account`
 - `payloads.account_maintenance.directory_bindings.binding`
@@ -250,7 +248,10 @@ Repeated HCL block syntax remains unchanged. Reordering these blocks no longer
 causes a policy update. Identical elements are deduplicated; changing a field,
 adding an element, or removing an element still produces an in-place update.
 Script execution priority remains controlled by each script's `priority` field.
-Single-configuration container blocks remain lists.
+Single-configuration container blocks remain lists. `payloads.printers` and
+`payloads.dock_items` also remain ordered lists, because Jamf Pro stores them in
+the order sent and dock item order can affect "Add To End" and
+"Add To Beginning" actions.
 
 Expressions that select collection elements by numeric index must be updated.
 For example, replace `jamfpro_policy.example.payloads[0].scripts[0].id` with a

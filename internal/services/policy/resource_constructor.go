@@ -416,14 +416,14 @@ func constructPayloadDiskEncryption(d *schema.ResourceData, resource *jamfpro.Re
 // Pulls "printers" settings from HCL and packages them into the resource.
 func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.printers")
-	if hcl == nil || hcl.(*schema.Set).Len() == 0 {
+	if hcl == nil || len(hcl.([]any)) == 0 {
 		return
 	}
 
 	outBlock := new(jamfpro.PolicySubsetPrinters)
 	outBlock.Printer = []jamfpro.PolicySubsetPrinter{}
 	payload := outBlock.Printer
-	for _, v := range hcl.(*schema.Set).List() {
+	for _, v := range hcl.([]any) {
 		payload = append(payload, jamfpro.PolicySubsetPrinter{
 			ID:          v.(map[string]any)["id"].(int),
 			Name:        v.(map[string]any)["name"].(string),
@@ -440,13 +440,13 @@ func constructPayloadPrinters(d *schema.ResourceData, resource *jamfpro.Resource
 // constructPayloadDockItems builds the dock items payload settings of the policy.
 func constructPayloadDockItems(d *schema.ResourceData, resource *jamfpro.ResourcePolicy) {
 	hcl := d.Get("payloads.0.dock_items")
-	if hcl == nil || hcl.(*schema.Set).Len() == 0 {
+	if hcl == nil || len(hcl.([]any)) == 0 {
 		return
 	}
 
 	var payload []jamfpro.PolicySubsetDockItem
 
-	for _, v := range hcl.(*schema.Set).List() {
+	for _, v := range hcl.([]any) {
 		newObj := jamfpro.PolicySubsetDockItem{
 			ID:     v.(map[string]any)["id"].(int),
 			Name:   v.(map[string]any)["name"].(string),

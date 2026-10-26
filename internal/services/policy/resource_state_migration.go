@@ -11,9 +11,7 @@ import (
 func resourcePolicyV1() *schema.Resource {
 	r := resourcePolicy()
 	payloads := r.Schema["payloads"].Elem.(*schema.Resource)
-	for _, name := range []string{"scripts", "printers", "dock_items"} {
-		payloads.Schema[name].Type = schema.TypeList
-	}
+	payloads.Schema["scripts"].Type = schema.TypeList
 	payloads.Schema["packages"].Elem.(*schema.Resource).Schema["package"].Type = schema.TypeList
 	maintenance := payloads.Schema["account_maintenance"].Elem.(*schema.Resource)
 	maintenance.Schema["local_accounts"].Elem.(*schema.Resource).Schema["account"].Type = schema.TypeList
