@@ -21,7 +21,10 @@ import (
 // ConvertHCLToPlist builds a plist from the Terraform HCL schema data
 // Used by plist generator resource to convert HCL data to plist
 func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
-	profile := mapSchemaToProfile(d)
+	profile, err := mapSchemaToProfile(d)
+	if err != nil {
+		return "", err
+	}
 	plistData, err := MarshalPayload(profile)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal plist: %w", err)
@@ -39,7 +42,7 @@ func ConvertHCLToPlist(d *schema.ResourceData) (string, error) {
 }
 
 // mapSchemaToProfile maps the Terraform schema data to the ConfigurationProfile struct
-func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
+func mapSchemaToProfile(d *schema.ResourceData) (*ConfigurationProfile, error) {
 	uuidStr := uuid.New().String()
 
 	// Root Level
@@ -71,54 +74,82 @@ func mapSchemaToProfile(d *schema.ResourceData) *ConfigurationProfile {
 			PayloadVersion:      val["payload_version"].(int),
 		}
 
-		settings, ok := val["setting"].([]any)
-		if !ok || len(settings) == 0 {
+		settings := dictionaryEntries(val["setting"])
+		if len(settings) == 0 {
 			out.PayloadContent = append(out.PayloadContent, payloadContentStruct)
 			continue
 		}
 
 		payloadContentStruct.ConfigurationItems = make(map[string]any, 0)
 		for _, s := range settings {
-			settingMap := s.(map[string]any)
-			dictionary := parseNestedDictionary(settingMap["dictionary"])
-			if dictionary != nil && len(dictionary) > 0 {
-				payloadContentStruct.ConfigurationItems[settingMap["key"].(string)] = dictionary
-			} else {
-				payloadContentStruct.ConfigurationItems[settingMap["key"].(string)] = GetTypedValue(settingMap["value"])
+			setting := s.(map[string]any)
+			if _, exists := payloadContentStruct.ConfigurationItems[setting["key"].(string)]; exists {
+				return nil, fmt.Errorf("duplicate setting key %q", setting["key"])
 			}
+			value, err := settingValue(setting)
+			if err != nil {
+				return nil, err
+			}
+			payloadContentStruct.ConfigurationItems[setting["key"].(string)] = value
 		}
 
 		out.PayloadContent = append(out.PayloadContent, payloadContentStruct)
 	}
 
-	return out
+	return out, nil
 }
 
-// parseNestedDictionary recursively parses the nested dictionary structure
-func parseNestedDictionary(dict any) map[string]any {
-	if dict == nil {
+// dictionaryEntries accepts legacy lists and current sets without changing arrays.
+func dictionaryEntries(value any) []any {
+	switch v := value.(type) {
+	case *schema.Set:
+		return v.List()
+	case []any:
+		return v
+	default:
 		return nil
 	}
+}
 
-	result := make(map[string]any)
-	dictionary := dict.([]any)
-	for _, item := range dictionary {
-		entry, ok := item.(map[string]any)
-		if !ok {
-			continue
-		}
-		key, ok := entry["key"].(string)
-		if !ok {
-			continue
-		}
-		value := GetTypedValue(entry["value"])
-		if nestedDict, ok := entry["dictionary"].([]any); ok {
-			value = parseNestedDictionary(nestedDict)
-		}
-		result[key] = value
+func settingValue(entry map[string]any) (any, error) {
+	dictionaryPresent := len(dictionaryEntries(entry["dictionary"])) > 0
+	if leaf, ok := entry["dictionary"].(map[string]any); ok && len(leaf) > 0 {
+		dictionaryPresent = true
 	}
-
-	return result
+	scalar, _ := entry["value"].(string)
+	if dictionaryPresent && scalar != "" {
+		return nil, fmt.Errorf("setting %q: value cannot be combined with dictionary", entry["key"])
+	}
+	if raw, ok := entry["array_json"].(string); ok && raw != "" {
+		if value, _ := entry["value"].(string); value != "" || dictionaryPresent {
+			return nil, fmt.Errorf("setting %q: array_json cannot be combined with value or dictionary", entry["key"])
+		}
+		return ParseJSONArray(raw)
+	}
+	if leaf, ok := entry["dictionary"].(map[string]any); ok && len(leaf) > 0 {
+		result := make(map[string]any, len(leaf))
+		for key, value := range leaf {
+			result[key] = GetTypedValue(value)
+		}
+		return result, nil
+	}
+	if entries := dictionaryEntries(entry["dictionary"]); len(entries) > 0 {
+		result := make(map[string]any, len(entries))
+		for _, item := range entries {
+			nested := item.(map[string]any)
+			key := nested["key"].(string)
+			if _, exists := result[key]; exists {
+				return nil, fmt.Errorf("duplicate dictionary key %q", key)
+			}
+			value, err := settingValue(nested)
+			if err != nil {
+				return nil, err
+			}
+			result[key] = value
+		}
+		return result, nil
+	}
+	return GetTypedValue(entry["value"]), nil
 }
 
 // GetTypedValue converts the value from the HCL always stored as string into the appropriate type for plist serialization.
@@ -206,7 +237,9 @@ func mapProfileToSchema(profile *ConfigurationProfile) ([]any, error) {
 
 		log.Printf("[DEBUG] ConfigurationItems being passed: %v", content.ConfigurationItems)
 		settingsList := []any{}
-		extractNestedConfigurationSettings(content.ConfigurationItems, &settingsList)
+		if err := extractNestedConfigurationSettings(content.ConfigurationItems, &settingsList); err != nil {
+			return nil, err
+		}
 		log.Printf("[DEBUG] Final settingsList: %v", settingsList)
 
 		payloadContent["setting"] = settingsList
@@ -219,7 +252,7 @@ func mapProfileToSchema(profile *ConfigurationProfile) ([]any, error) {
 }
 
 // extractNestedConfigurationSettings recursively extracts key-value pairs from nested dictionaries and appends them to settingsList
-func extractNestedConfigurationSettings(items map[string]any, settingsList *[]any) {
+func extractNestedConfigurationSettings(items map[string]any, settingsList *[]any) error {
 	log.Printf("[DEBUG] Raw data being processed: %v", items)
 	for key, value := range items {
 		log.Printf("[DEBUG] Processing configuration item key: %s, value: %v", key, value)
@@ -231,23 +264,20 @@ func extractNestedConfigurationSettings(items map[string]any, settingsList *[]an
 		case map[string]any:
 			if len(v) > 0 {
 				nestedSettings := []any{}
-				extractNestedConfigurationSettings(v, &nestedSettings)
+				if err := extractNestedConfigurationSettings(v, &nestedSettings); err != nil {
+					return err
+				}
 				settingMap["dictionary"] = nestedSettings
 			} else {
 				settingMap["value"] = "{}"
 			}
 		case []any:
-			if len(v) > 0 {
-				var nestedSettings []any
-				for _, item := range v {
-					if nestedItem, ok := item.(map[string]any); ok {
-						nestedSettings = append(nestedSettings, nestedItem)
-					}
-				}
-				settingMap["dictionary"] = nestedSettings
-			} else {
-				settingMap["value"] = "[]"
+			// Arrays are ordered values, including duplicate items and dictionary elements.
+			encoded, err := EncodeJSONArray(v)
+			if err != nil {
+				return fmt.Errorf("setting %q: %w", key, err)
 			}
+			settingMap["array_json"] = encoded
 		case bool, int, float64, string:
 			settingMap["value"] = fmt.Sprintf("%v", v)
 		default:
@@ -257,6 +287,7 @@ func extractNestedConfigurationSettings(items map[string]any, settingsList *[]an
 		log.Printf("[DEBUG] Adding settingMap: %v", settingMap)
 		*settingsList = append(*settingsList, settingMap)
 	}
+	return nil
 }
 
 // UnmarshalPayload unmarshals a plist payload into a ConfigurationProfile struct using mapstructure.

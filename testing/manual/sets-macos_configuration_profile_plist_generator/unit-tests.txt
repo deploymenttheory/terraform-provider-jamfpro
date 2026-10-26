@@ -1,0 +1,23 @@
+$ go test ./internal/services/macos_configuration_profile_plist_generator ./internal/common/... ./internal/provider
+ok  	github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/macos_configuration_profile_plist_generator	(cached)
+ok  	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/constructors	(cached)
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/crypto	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/enrollment_lock	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/errors	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/files	[no test files]
+ok  	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/framework_crud	(cached)
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/images	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/jamf_privileges	[no test files]
+ok  	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist	(cached)
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist/test/encode	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist/test/plistsanitizefortfstate	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist/test/removekeys	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/plist/test/sortkeys	[no test files]
+ok  	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/redact	(cached)
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema/helpers	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema/validation	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sdkv2_crud	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils	[no test files]
+?   	github.com/deploymenttheory/terraform-provider-jamfpro/internal/provider	[no test files]

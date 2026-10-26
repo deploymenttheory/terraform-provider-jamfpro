@@ -227,3 +227,81 @@ restore the pre-upgrade state and provider together if a rollback is necessary.
 The upgrader retains the complete v0 schema, including unrelated nested values,
 and accepts JSON and legacy flatmap state. No resource replacement, state removal,
 or import is required. Other ordered lists and singleton blocks are unchanged.
+
+## `jamfpro_macos_configuration_profile_plist_generator`: unordered collections (v0 to v1)
+
+Schema version 1 automatically upgrades existing version 0 state. The collections
+listed below are unordered sets; repeated identical elements are deduplicated.
+HCL block syntax is unchanged, but numeric indexing into these collections is no
+longer supported. Select by ID/key with a `for` expression instead.
+
+`setting`, `dictionary`.
+
+Back up state before upgrading. Do not use upgraded state with an older provider;
+restore the pre-upgrade state and provider together if a rollback is necessary.
+
+Only `payloads.payload_content.setting` and its nested dictionary entry blocks
+are sets. `payloads`, `payload_content`, and all plist arrays keep their existing
+order semantics. Dictionary keys must be unique.
+
+Use `array_json` instead of `value` or `dictionary` for an ordered array:
+
+```hcl
+setting {
+  key        = "OrderedValues"
+  array_json = jsonencode(["second", "first", "second"])
+}
+```
+
+`array_json` is an optional string on settings and dictionary entries (up to the
+existing six nested block levels). It supports JSON-compatible plist array
+values and preserves element order and duplicates. Nested dictionaries inside
+an array remain array elements. Reordering an array is a real configuration
+change. The legacy string value conversion continues to recognize booleans and
+integers. The terminal dictionary remains a string map.
+
+The upgrader retains the complete v0 schema, including unrelated nested values,
+and accepts JSON and legacy flatmap state. No resource replacement, state removal,
+or import is required. Other ordered lists and singleton blocks are unchanged.
+
+Arrays containing plist dates or binary data are rejected with an explicit error;
+they are not coerced to JSON strings. Use the raw plist profile resource for
+those payload types.
+
+Array JSON numbers are normalized without reordering or deduplicating elements.
+Integers retain their signed/unsigned 64-bit values; real numbers use the plist
+64-bit floating-point representation and retain a decimal/exponent marker when
+read back (for example, `1.0` remains a real). JSON `null`, integers outside the
+supported 64-bit range, and non-finite/out-of-range real values are rejected
+before apply rather than silently removed or coerced.
+
+### Behaviour changes
+
+**Nested dictionary scalar values are now sent.** In v0.42.0 and earlier, a
+`dictionary` entry with a scalar `value` was sent to Jamf Pro as an empty
+`<dict/>`, so the value was lost. This version sends the configured value. After
+the upgrade, profiles that contain such entries show an in-place update on the
+first plan, and applying it changes the payload deployed by Jamf Pro. Review the
+diff before applying. For example, this entry was previously sent as
+`<key>Enabled</key><dict/>` and is now sent as `<key>Enabled</key><true/>`:
+
+```hcl
+setting {
+  key = "Options"
+  dictionary {
+    key   = "Enabled"
+    value = "true"
+  }
+}
+```
+
+**Ambiguous settings are now rejected.** v0.42.0 accepted the following
+configurations and silently discarded part of them. This version returns an
+error at apply time instead:
+
+- Two `setting` blocks in the same `payload_content`, or two `dictionary` entries
+  in the same dictionary, with the same `key` (previously the last one won).
+- A `setting` or `dictionary` entry that sets both `value` and `dictionary`
+  (previously `value` was discarded).
+
+Remove the duplicate key or the unused `value` before upgrading.
