@@ -4,7 +4,6 @@ package policy
 // TODO maybe review error handling here too?
 
 import (
-	"fmt"
 	"log"
 	"reflect"
 
@@ -209,7 +208,16 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]any, resp *jamfpro.Res
 
 	if resp.AccountMaintenance.Accounts != nil {
 		localAccounts := make([]map[string]any, 0)
-		for i, v := range *resp.AccountMaintenance.Accounts {
+		// The API does not return plaintext passwords. Preserve them by account
+		// identity because neither API order nor set hashes are positional.
+		passwords := make(map[string]string)
+		if configured, ok := d.GetOk("payloads.0.account_maintenance.0.local_accounts.0.account"); ok {
+			for _, item := range configured.(*schema.Set).List() {
+				account := item.(map[string]any)
+				passwords[account["username"].(string)] = account["password"].(string)
+			}
+		}
+		for _, v := range *resp.AccountMaintenance.Accounts {
 			accountMap := make(map[string]any)
 			accountMap["action"] = v.Action
 			accountMap["username"] = v.Username
@@ -223,7 +231,7 @@ func prepStatePayloadAccountMaintenance(out *[]map[string]any, resp *jamfpro.Res
 			accountMap["filevault_enabled"] = v.FilevaultEnabled
 			accountMap["secure_token_allowed"] = v.SecureTokenAllowed
 
-			if pw, ok := d.GetOk(fmt.Sprintf("payloads.0.account_maintenance.0.local_accounts.0.account.%d.password", i)); ok {
+			if pw, ok := passwords[v.Username]; ok {
 				accountMap["password"] = pw
 			}
 

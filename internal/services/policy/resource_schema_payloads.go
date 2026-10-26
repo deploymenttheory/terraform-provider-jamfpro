@@ -28,7 +28,7 @@ func getPolicySchemaPayloads() *schema.Resource {
 				Elem:        getPolicySchemaPackages(),
 			},
 			"scripts": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Scripts settings of the policy.",
 				Elem:        getPolicySchemaScript(),

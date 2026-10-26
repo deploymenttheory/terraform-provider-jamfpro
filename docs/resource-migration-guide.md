@@ -227,3 +227,44 @@ restore the pre-upgrade state and provider together if a rollback is necessary.
 The upgrader retains the complete v0 schema, including unrelated nested values,
 and accepts JSON and legacy flatmap state. No resource replacement, state removal,
 or import is required. Other ordered lists and singleton blocks are unchanged.
+
+## Policy collection blocks: schema version 2
+
+The following `jamfpro_policy` blocks now use unordered sets:
+
+- `payloads.scripts`
+- `payloads.packages.package`
+- `payloads.account_maintenance.local_accounts.account`
+- `payloads.account_maintenance.directory_bindings.binding`
+- `self_service.self_service_category`
+
+The provider automatically upgrades existing policy state from schema version 1
+to version 2. Version 0 state first passes through the existing user-interaction
+field rename, then the collection migration. No `terraform state rm`, import,
+or policy recreation is required. Run `terraform plan`, review the result, and
+apply the saved plan to persist the new state version.
+
+Repeated HCL block syntax remains unchanged. Reordering these blocks no longer
+causes a policy update. Identical elements are deduplicated; changing a field,
+adding an element, or removing an element still produces an in-place update.
+Script execution priority remains controlled by each script's `priority` field.
+Single-configuration container blocks remain lists. `payloads.printers` and
+`payloads.dock_items` also remain ordered lists, because Jamf Pro stores them in
+the order sent and dock item order can affect "Add To End" and
+"Add To Beginning" actions.
+
+Expressions that select collection elements by numeric index must be updated.
+For example, replace `jamfpro_policy.example.payloads[0].scripts[0].id` with a
+selection by identity:
+
+```hcl
+output "selected_script_parameter" {
+  value = one([
+    for script in jamfpro_policy.example.payloads[0].scripts : script.parameter4
+    if script.id == jamfpro_script.example.id
+  ])
+}
+```
+
+Back up state before upgrading. After applying with schema version 2, an older
+provider cannot read the upgraded state; do not downgrade that state in place.
