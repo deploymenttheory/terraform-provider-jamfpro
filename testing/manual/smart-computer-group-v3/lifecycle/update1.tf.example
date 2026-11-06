@@ -1,0 +1,87 @@
+resource "jamfpro_smart_computer_group_v3" "native" {
+  name        = "${var.test_prefix}-native-renamed"
+  description = "Updated lifecycle description."
+  site_id     = "-1"
+  criteria {
+    name          = "Serial Number"
+    value         = "${var.test_prefix}-update1"
+    search_type   = "is"
+    and_or        = "and"
+    opening_paren = false
+    closing_paren = false
+    priority      = 0
+  }
+  criteria {
+    name          = "Operating System Version"
+    value         = "26."
+    search_type   = "like"
+    and_or        = "and"
+    opening_paren = false
+    closing_paren = false
+    priority      = 1
+  }
+  criteria {
+    name          = "Model"
+    value         = "Mac"
+    search_type   = "like"
+    and_or        = "and"
+    opening_paren = false
+    closing_paren = false
+    priority      = 2
+  }
+  timeouts = { create = "3m", read = "3m", update = "3m", delete = "3m" }
+}
+
+resource "jamfpro_smart_computer_group_v3" "fallback" {
+  name        = "${var.test_prefix}-fallback-renamed"
+  description = "Updated lifecycle description."
+  site_id     = "-1"
+  criteria {
+    name          = var.extension_attribute_name
+    value         = "${var.test_prefix}-update1"
+    search_type   = "has"
+    and_or        = "and"
+    opening_paren = false
+    closing_paren = false
+    priority      = 0
+  }
+  criteria {
+    name          = "Operating System Version"
+    value         = "26."
+    search_type   = "like"
+    and_or        = "and"
+    opening_paren = false
+    closing_paren = false
+    priority      = 1
+  }
+  criteria {
+    name          = "Model"
+    value         = "Mac"
+    search_type   = "like"
+    and_or        = "and"
+    opening_paren = false
+    closing_paren = false
+    priority      = 2
+  }
+  timeouts = { create = "3m", read = "3m", update = "3m", delete = "3m" }
+}
+
+data "jamfpro_smart_computer_group_v3" "native_by_id" {
+  id         = jamfpro_smart_computer_group_v3.native.id
+  depends_on = [jamfpro_smart_computer_group_v3.native]
+}
+
+data "jamfpro_smart_computer_group_v3" "native_by_name" {
+  name       = jamfpro_smart_computer_group_v3.native.name
+  depends_on = [jamfpro_smart_computer_group_v3.native]
+}
+
+data "jamfpro_smart_computer_group_v3" "fallback_by_id" {
+  id         = jamfpro_smart_computer_group_v3.fallback.id
+  depends_on = [jamfpro_smart_computer_group_v3.fallback]
+}
+
+data "jamfpro_smart_computer_group_v3" "fallback_by_name" {
+  name       = jamfpro_smart_computer_group_v3.fallback.name
+  depends_on = [jamfpro_smart_computer_group_v3.fallback]
+}

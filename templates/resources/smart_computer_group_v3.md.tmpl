@@ -1,0 +1,35 @@
+---
+page_title: "{{ .Name }}"
+description: |-
+  {{ .Description }}
+---
+
+# {{ .Name }} (Resource)
+
+{{ .Description }}
+
+## API behavior
+
+- Criteria are ordered. Set each `priority` to its zero-based block position; parentheses must be balanced.
+- Known v3 criterion/operator validation refusals trigger one complete Classic write containing name, site, and all criteria. A warning identifies this workaround.
+- Classic writes preserve the existing description. A changed description is patched separately using the group's Platform identifier, after the group write becomes readable. Setting or defaulting `description` to an empty string clears it.
+- Removing every criteria block clears the criteria. Removing `site_id` assigns the group to None (`-1`).
+- Names are case-insensitively unique across smart, static, and Platform computer groups. Use names without surrounding whitespace, because Classic writes trim it.
+- For directory-service group criteria, use a base64-encoded JSON `value` containing `uuid` and `serverId`, as required by Jamf Pro.
+- A group deleted outside Terraform is removed from state during refresh so Terraform can recreate it.
+
+## Example Usage
+
+{{ tffile "examples/resources/jamfpro_smart_computer_group_v3/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import using the numeric Jamf Pro group ID:
+
+```shell
+terraform import jamfpro_smart_computer_group_v3.example 123
+```
+
+When moving an existing group from another resource type, back up state, remove its old state association without destroying the group, and import the same numeric ID into this resource. Manage the group through one resource address at a time.

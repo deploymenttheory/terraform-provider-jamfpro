@@ -1,0 +1,14 @@
+terraform {
+  required_providers {
+    jamfpro = { source = "deploymenttheory/jamfpro" }
+  }
+}
+
+provider "jamfpro" {
+  hide_sensitive_data                 = true
+  enable_client_sdk_logs              = false
+  token_refresh_buffer_period_seconds = 300
+}
+
+variable "test_prefix" { type = string }
+variable "extension_attribute_name" { type = string }
