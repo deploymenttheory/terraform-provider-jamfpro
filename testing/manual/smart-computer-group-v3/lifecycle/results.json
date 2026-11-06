@@ -1,0 +1,134 @@
+{
+  "prefix": "tf-testing-smart-v3-lifecycle-a1d7370932",
+  "source_commit": "77243b0935b96e1e38fc9f8fc0c31a24d24d8fc1",
+  "terraform_version": "1.16.4",
+  "jamf_version": "11.33.3-t1793127642444",
+  "sdk": "v1.54.0",
+  "http_client": "v0.4.8",
+  "date": "2026-11-06",
+  "provider_binary_sha256": "0216b2b44fd14bc5e769f26a98b9fcc2677373c93f570858dfcb9fb3cffdd0ac",
+  "paths": [
+    "native_v3",
+    "classic_fallback_after_live_v3_400_INVALID_FIELD"
+  ],
+  "ids": {
+    "native": "27002",
+    "fallback": "27003"
+  },
+  "phases": [
+    {
+      "phase": "create",
+      "plan_exit_code": 2,
+      "actions": {
+        "jamfpro_smart_computer_group_v3.fallback": [
+          "create"
+        ],
+        "jamfpro_smart_computer_group_v3.native": [
+          "create"
+        ]
+      },
+      "apply_exit_code": 0,
+      "ids": {
+        "native": "27002",
+        "fallback": "27003"
+      },
+      "api_state_data_sources_timeouts_match": true,
+      "normal_refreshed_plan_exit_codes": [
+        0,
+        0
+      ],
+      "refresh_only_exit_code": 2,
+      "refresh_only_resource_and_output_changes": {},
+      "saved_state_values_equal_refresh_only_values": true
+    },
+    {
+      "phase": "update1",
+      "plan_exit_code": 2,
+      "actions": {
+        "jamfpro_smart_computer_group_v3.fallback": [
+          "update"
+        ],
+        "jamfpro_smart_computer_group_v3.native": [
+          "update"
+        ]
+      },
+      "apply_exit_code": 0,
+      "ids": {
+        "native": "27002",
+        "fallback": "27003"
+      },
+      "api_state_data_sources_timeouts_match": true,
+      "normal_refreshed_plan_exit_codes": [
+        0,
+        0
+      ],
+      "refresh_only_exit_code": 2,
+      "refresh_only_resource_and_output_changes": {},
+      "saved_state_values_equal_refresh_only_values": true
+    },
+    {
+      "phase": "update2",
+      "plan_exit_code": 2,
+      "actions": {
+        "jamfpro_smart_computer_group_v3.fallback": [
+          "update"
+        ],
+        "jamfpro_smart_computer_group_v3.native": [
+          "update"
+        ]
+      },
+      "apply_exit_code": 0,
+      "ids": {
+        "native": "27002",
+        "fallback": "27003"
+      },
+      "api_state_data_sources_timeouts_match": true,
+      "normal_refreshed_plan_exit_codes": [
+        0,
+        0
+      ],
+      "refresh_only_exit_code": 2,
+      "refresh_only_resource_and_output_changes": {},
+      "saved_state_values_equal_refresh_only_values": true
+    },
+    {
+      "phase": "delete",
+      "plan_exit_code": 2,
+      "actions": {
+        "jamfpro_smart_computer_group_v3.fallback": [
+          "delete"
+        ],
+        "jamfpro_smart_computer_group_v3.native": [
+          "delete"
+        ]
+      },
+      "apply_exit_code": 0,
+      "state_list_empty": true,
+      "normal_plan_after_removing_desired_groups_exit_codes": [
+        0,
+        0
+      ]
+    }
+  ],
+  "refresh_only_note": "Terraform 1.16.4 returned 2 while printing No changes for nonempty refresh-only plans. Saved JSON contained no resource_drift, resource_changes, or output_changes, and resource/data-source values matched saved state exactly. Two ordinary refreshed plans after each apply returned 0. No refresh-only plan was applied.",
+  "ci_fixture": {
+    "init_exit_code": 0,
+    "validate_exit_code": 0,
+    "terraform_test_exit_code": 0,
+    "passed": 1,
+    "failed": 0,
+    "teardown_passed": true,
+    "provider_source": "terraform.local/local/jamfpro",
+    "random_version": "3.4.3"
+  },
+  "cleanup": {
+    "prefix_matches": [],
+    "group_status": {
+      "27000": 404,
+      "27001": 404,
+      "27002": 404,
+      "27003": 404
+    },
+    "passed": true
+  }
+}
