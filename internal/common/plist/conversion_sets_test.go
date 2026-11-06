@@ -1,9 +1,10 @@
 package plist
 
 import (
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestDictionarySetsAndOrderedArrays(t *testing.T) {
@@ -21,7 +22,7 @@ func TestDictionarySetsAndOrderedArrays(t *testing.T) {
 		value, err := settingValue(map[string]any{"key": "array", "array_json": raw})
 		require.NoError(t, err)
 		var extracted []any
-		extractNestedConfigurationSettings(map[string]any{"array": value}, &extracted)
+		require.NoError(t, extractNestedConfigurationSettings(map[string]any{"array": value}, &extracted))
 		require.JSONEq(t, raw, extracted[0].(map[string]any)["array_json"].(string))
 		restored, err := settingValue(extracted[0].(map[string]any))
 		require.NoError(t, err)

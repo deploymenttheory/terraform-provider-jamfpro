@@ -2,22 +2,34 @@ package plist
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
 	"strings"
 )
 
+var (
+	errInvalidJSONArray         = errors.New("array_json must contain a valid JSON array")
+	errExpectedJSONArray        = errors.New("array_json must contain a JSON array")
+	errArrayRealOutOfRange      = errors.New("array_json real is outside the supported range")
+	errArrayRealUnderflow       = errors.New("array_json real underflows the supported range")
+	errArrayIntegerOutOfRange   = errors.New("array_json integer is outside the supported 64-bit range")
+	errUnsupportedArrayValue    = errors.New("plist does not support null")
+	errNonFiniteArrayReal       = errors.New("plist array contains a non-finite real")
+	errUnsupportedJSONValueType = errors.New("plist array contains unsupported JSON value type")
+)
+
 // ParseJSONArray validates plist scalar kinds and rejects values that would be dropped.
 func ParseJSONArray(raw string) ([]any, error) {
 	if !json.Valid([]byte(raw)) {
-		return nil, fmt.Errorf("array_json must contain a valid JSON array")
+		return nil, errInvalidJSONArray
 	}
 	decoder := json.NewDecoder(strings.NewReader(raw))
 	decoder.UseNumber()
 	var array []any
 	if err := decoder.Decode(&array); err != nil || array == nil {
-		return nil, fmt.Errorf("array_json must contain a JSON array")
+		return nil, errExpectedJSONArray
 	}
 	value, err := parseArrayValue(array)
 	if err != nil {
@@ -32,11 +44,11 @@ func parseArrayValue(value any) (any, error) {
 		if strings.ContainsAny(string(v), ".eE") {
 			n, err := v.Float64()
 			if err != nil || math.IsInf(n, 0) || math.IsNaN(n) {
-				return nil, fmt.Errorf("array_json real %q is outside the supported range", v)
+				return nil, fmt.Errorf("%w: %q", errArrayRealOutOfRange, v)
 			}
 			mantissa := strings.SplitN(strings.ToLower(string(v)), "e", 2)[0]
 			if n == 0 && strings.ContainsAny(mantissa, "123456789") {
-				return nil, fmt.Errorf("array_json real %q underflows the supported range", v)
+				return nil, fmt.Errorf("%w: %q", errArrayRealUnderflow, v)
 			}
 			return n, nil
 		}
@@ -46,7 +58,7 @@ func parseArrayValue(value any) (any, error) {
 		if n, err := strconv.ParseUint(string(v), 10, 64); err == nil {
 			return n, nil
 		}
-		return nil, fmt.Errorf("array_json integer %q is outside the supported 64-bit range", v)
+		return nil, fmt.Errorf("%w: %q", errArrayIntegerOutOfRange, v)
 	case []any:
 		result := make([]any, len(v))
 		for i, child := range v {
@@ -70,7 +82,7 @@ func parseArrayValue(value any) (any, error) {
 	case string, bool:
 		return v, nil
 	default:
-		return nil, fmt.Errorf("array_json contains unsupported value %T; plist does not support null", value)
+		return nil, fmt.Errorf("array_json contains unsupported value %T: %w", value, errUnsupportedArrayValue)
 	}
 }
 
@@ -88,7 +100,7 @@ func arrayJSONValue(value any) (any, error) {
 	switch v := value.(type) {
 	case float64:
 		if math.IsNaN(v) || math.IsInf(v, 0) {
-			return nil, fmt.Errorf("plist array contains a non-finite real")
+			return nil, errNonFiniteArrayReal
 		}
 		raw := strconv.FormatFloat(v, 'g', -1, 64)
 		// JSON's default float encoder drops .0, which would turn a plist real into
@@ -122,6 +134,6 @@ func arrayJSONValue(value any) (any, error) {
 		}
 		return result, nil
 	default:
-		return nil, fmt.Errorf("plist array contains unsupported JSON value type %T", value)
+		return nil, fmt.Errorf("%w %T", errUnsupportedJSONValueType, value)
 	}
 }

@@ -5,6 +5,7 @@ package plist
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html"
 	"log"
@@ -16,6 +17,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mitchellh/mapstructure"
 	"howett.net/plist"
+)
+
+var (
+	errDuplicateSettingKey    = errors.New("duplicate setting key")
+	errDuplicateDictionaryKey = errors.New("duplicate dictionary key")
+	errConflictingValue       = errors.New("value cannot be combined with dictionary")
+	errConflictingArrayJSON   = errors.New("array_json cannot be combined with value or dictionary")
 )
 
 // ConvertHCLToPlist builds a plist from the Terraform HCL schema data
@@ -84,7 +92,7 @@ func mapSchemaToProfile(d *schema.ResourceData) (*ConfigurationProfile, error) {
 		for _, s := range settings {
 			setting := s.(map[string]any)
 			if _, exists := payloadContentStruct.ConfigurationItems[setting["key"].(string)]; exists {
-				return nil, fmt.Errorf("duplicate setting key %q", setting["key"])
+				return nil, fmt.Errorf("%w %q", errDuplicateSettingKey, setting["key"])
 			}
 			value, err := settingValue(setting)
 			if err != nil {
@@ -118,11 +126,11 @@ func settingValue(entry map[string]any) (any, error) {
 	}
 	scalar, _ := entry["value"].(string)
 	if dictionaryPresent && scalar != "" {
-		return nil, fmt.Errorf("setting %q: value cannot be combined with dictionary", entry["key"])
+		return nil, fmt.Errorf("setting %q: %w", entry["key"], errConflictingValue)
 	}
 	if raw, ok := entry["array_json"].(string); ok && raw != "" {
 		if value, _ := entry["value"].(string); value != "" || dictionaryPresent {
-			return nil, fmt.Errorf("setting %q: array_json cannot be combined with value or dictionary", entry["key"])
+			return nil, fmt.Errorf("setting %q: %w", entry["key"], errConflictingArrayJSON)
 		}
 		return ParseJSONArray(raw)
 	}
@@ -139,7 +147,7 @@ func settingValue(entry map[string]any) (any, error) {
 			nested := item.(map[string]any)
 			key := nested["key"].(string)
 			if _, exists := result[key]; exists {
-				return nil, fmt.Errorf("duplicate dictionary key %q", key)
+				return nil, fmt.Errorf("%w %q", errDuplicateDictionaryKey, key)
 			}
 			value, err := settingValue(nested)
 			if err != nil {

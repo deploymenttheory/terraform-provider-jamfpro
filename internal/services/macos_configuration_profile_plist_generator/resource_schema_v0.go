@@ -1,6 +1,7 @@
 package macos_configuration_profile_plist_generator
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -8,6 +9,11 @@ import (
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+var (
+	errRedeployOnUpdateStringRequired = errors.New("must be a string")
+	errInvalidRedeployOnUpdate        = errors.New("must be either 'All' or 'Newly Assigned'")
 )
 
 // resourceV0 preserves the complete schema before collection sets were introduced.
@@ -213,13 +219,13 @@ func resourceV0() *schema.Resource {
 				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v, ok := val.(string)
 					if !ok {
-						errs = append(errs, fmt.Errorf("%q must be a string, got: %T", key, val))
+						errs = append(errs, fmt.Errorf("%q %w, got: %T", key, errRedeployOnUpdateStringRequired, val))
 						return warns, errs
 					}
 					if v == "All" || v == "Newly Assigned" {
 						return
 					}
-					errs = append(errs, fmt.Errorf("%q must be either 'All' or 'Newly Assigned', got: %s", key, v))
+					errs = append(errs, fmt.Errorf("%q %w, got: %s", key, errInvalidRedeployOnUpdate, v))
 					return warns, errs
 				},
 			},
