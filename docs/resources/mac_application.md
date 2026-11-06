@@ -188,15 +188,3 @@ Optional:
 
 - `assign_vpp_device_based_licenses` (Boolean) Assign VPP device-based licenses.
 - `vpp_admin_account_id` (Number) The VPP admin account ID.
-## Collection state migration
-
-Schema version 1 automatically upgrades existing version 0 state. The collections
-listed below are unordered sets; repeated identical elements are deduplicated.
-HCL block syntax is unchanged, but numeric indexing into these collections is no
-longer supported. Select by ID/key with a `for` expression instead.
-
-`self_service_category`.
-
-Back up state before upgrading. Do not use upgraded state with an older provider;
-restore the pre-upgrade state and provider together if a rollback is necessary.
-See the [resource migration guide](../resource-migration-guide.md).
