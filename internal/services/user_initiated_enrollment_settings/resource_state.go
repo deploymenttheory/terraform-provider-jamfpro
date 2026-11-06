@@ -4,6 +4,7 @@ package user_initiated_enrollment_settings
 import (
 	"fmt"
 	"log"
+	"maps"
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
@@ -88,6 +89,10 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 	}
 
 	// --- Set Computer Enrollment Settings ---
+	var existingComputer map[string]any
+	if configured, ok := d.Get("user_initiated_enrollment_for_computers").(*schema.Set); ok && configured.Len() > 0 {
+		existingComputer, _ = configured.List()[0].(map[string]any)
+	}
 	computerBlockEnabledInAPI := enrollment.MacOsEnterpriseEnrollmentEnabled ||
 		enrollment.CreateManagementAccount ||
 		enrollment.EnsureSshRunning ||
@@ -97,7 +102,7 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 
 	var computerEnrollmentStateValue []any // Value to set for the TypeSet
 
-	if computerBlockEnabledInAPI {
+	if computerBlockEnabledInAPI || len(existingComputer) > 0 {
 		log.Printf("[DEBUG] updateState: user_initiated_enrollment_for_computers block is considered enabled based on API flags.")
 		computerSettings := map[string]any{
 			"enable_user_initiated_enrollment_for_computers": enrollment.MacOsEnterpriseEnrollmentEnabled,
@@ -116,6 +121,12 @@ func updateState(d *schema.ResourceData, enrollment *jamfpro.ResourceEnrollment,
 				"allow_ssh_access_for_managed_local_administrator_account_only": enrollment.AllowSshOnlyManagementAccount,
 			}
 			computerSettings["managed_local_administrator_account"] = []any{adminAccountMap} // List for TypeSet
+		} else if existingAdmin, ok := existingComputer["managed_local_administrator_account"].(*schema.Set); ok && existingAdmin.Len() > 0 {
+			// Jamf does not retain inactive account settings. Keep their configured
+			// values, but always record the actual enablement flag from the API.
+			adminAccountMap := maps.Clone(existingAdmin.List()[0].(map[string]any))
+			adminAccountMap["create_managed_local_administrator_account"] = false
+			computerSettings["managed_local_administrator_account"] = []any{adminAccountMap}
 		} else {
 			log.Printf("[DEBUG] updateState: managed_local_administrator_account is disabled in API response. Clearing sub-block state.")
 			computerSettings["managed_local_administrator_account"] = nil
