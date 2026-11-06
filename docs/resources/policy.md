@@ -277,7 +277,7 @@ Optional:
 - `packages` (Block List) Package configuration settings of the policy. (see [below for nested schema](#nestedblock--payloads--packages))
 - `printers` (Block List) Printers settings of the policy. (see [below for nested schema](#nestedblock--payloads--printers))
 - `reboot` (Block List) Use this section to restart computers and specify the disk to boot them to (see [below for nested schema](#nestedblock--payloads--reboot))
-- `scripts` (Block List) Scripts settings of the policy. (see [below for nested schema](#nestedblock--payloads--scripts))
+- `scripts` (Block Set) Scripts settings of the policy. (see [below for nested schema](#nestedblock--payloads--scripts))
 - `user_interaction` (Block List) User interaction settings of the policy. (see [below for nested schema](#nestedblock--payloads--user_interaction))
 
 Read-Only:
@@ -299,7 +299,7 @@ Optional:
 
 Optional:
 
-- `binding` (Block List) Details of the directory binding. (see [below for nested schema](#nestedblock--payloads--account_maintenance--directory_bindings--binding))
+- `binding` (Block Set) Details of the directory binding. (see [below for nested schema](#nestedblock--payloads--account_maintenance--directory_bindings--binding))
 
 <a id="nestedblock--payloads--account_maintenance--directory_bindings--binding"></a>
 ### Nested Schema for `payloads.account_maintenance.directory_bindings.binding`
@@ -315,7 +315,7 @@ Required:
 
 Optional:
 
-- `account` (Block List) Details of each account configuration. (see [below for nested schema](#nestedblock--payloads--account_maintenance--local_accounts--account))
+- `account` (Block Set) Details of each account configuration. (see [below for nested schema](#nestedblock--payloads--account_maintenance--local_accounts--account))
 
 <a id="nestedblock--payloads--account_maintenance--local_accounts--account"></a>
 ### Nested Schema for `payloads.account_maintenance.local_accounts.account`
@@ -426,7 +426,7 @@ Optional:
 Required:
 
 - `distribution_point` (String) Distribution point for the package.
-- `package` (Block List, Min: 1) List of packages. (see [below for nested schema](#nestedblock--payloads--packages--package))
+- `package` (Block Set, Min: 1) List of packages. (see [below for nested schema](#nestedblock--payloads--packages--package))
 
 <a id="nestedblock--payloads--packages--package"></a>
 ### Nested Schema for `payloads.packages.package`
@@ -592,7 +592,7 @@ Optional:
 - `notification_subject` (String) The subject of the notification message.
 - `notification_type` (String) The type of notification. Valid values are 'Self Service' and 'Self Service and Notification Center'.
 - `reinstall_button_text` (String) Text displayed on the re-install button in self-service.
-- `self_service_category` (Block List) Category settings for the policy in self-service. Multiple categories can be specified. (see [below for nested schema](#nestedblock--self_service--self_service_category))
+- `self_service_category` (Block Set) Category settings for the policy in self-service. Multiple categories can be specified. (see [below for nested schema](#nestedblock--self_service--self_service_category))
 - `self_service_description` (String) Description of the policy displayed in self-service.
 - `self_service_display_name` (String) Display name of the policy in self-service.
 - `self_service_icon_id` (Number) Icon for policy to use in self-service

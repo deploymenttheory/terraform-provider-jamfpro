@@ -14,7 +14,7 @@ func getPolicySchemaPackages() *schema.Resource {
 				Description: "Distribution point for the package.",
 			},
 			"package": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Required:    true,
 				Description: "List of packages.",
 				Elem: &schema.Resource{

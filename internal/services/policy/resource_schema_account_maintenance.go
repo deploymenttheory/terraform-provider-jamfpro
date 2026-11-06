@@ -15,7 +15,7 @@ func getPolicySchemaAccountMaintenance() *schema.Resource {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"account": {
-						Type:        schema.TypeList,
+						Type:        schema.TypeSet,
 						Optional:    true,
 						Description: "Details of each account configuration.",
 						Elem:        getPolicySchemaAccount(),
@@ -121,7 +121,7 @@ func getPolicySchemaDirectoryBinding() *schema.Resource {
 	out := &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"binding": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Description: "Details of the directory binding.",
 				Elem: &schema.Resource{

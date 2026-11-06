@@ -34,9 +34,6 @@ func getPolicySchemaScript() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "Custom parameter 5 for the script.",
 				Optional:    true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return old == new
-				},
 			},
 			"parameter6": {
 				Type:        schema.TypeString,
