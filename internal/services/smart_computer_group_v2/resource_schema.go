@@ -34,7 +34,14 @@ func NewSmartComputerGroupV2FrameworkResource() resource.Resource {
 
 // smartComputerGroupV2FrameworkResource defines the resource implementation.
 type smartComputerGroupV2FrameworkResource struct {
-	client *jamfpro.Client
+	client smartComputerGroupV2API
+}
+
+type smartComputerGroupV2API interface {
+	GetSmartComputerGroupByIDV2WithContext(context.Context, string) (*jamfpro.ResourceSmartComputerGroupV2, error)
+	CreateSmartComputerGroupV2WithContext(context.Context, jamfpro.ResourceSmartComputerGroupV2) (*jamfpro.ResponseSmartComputerGroupCreateV2, error)
+	UpdateSmartComputerGroupByIDV2WithContext(context.Context, string, jamfpro.ResourceSmartComputerGroupV2) (*jamfpro.ResourceSmartComputerGroupV2, error)
+	DeleteSmartComputerGroupByIDV2WithContext(context.Context, string) error
 }
 
 func (r *smartComputerGroupV2FrameworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
