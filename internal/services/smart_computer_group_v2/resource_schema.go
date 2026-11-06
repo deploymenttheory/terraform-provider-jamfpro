@@ -2,6 +2,7 @@ package smart_computer_group_v2
 
 import (
 	"context"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	commonschema "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema"
@@ -29,12 +30,13 @@ var (
 
 // NewSmartComputerGroupV2FrameworkResource is a helper function to simplify the provider implementation.
 func NewSmartComputerGroupV2FrameworkResource() resource.Resource {
-	return &smartComputerGroupV2FrameworkResource{}
+	return &smartComputerGroupV2FrameworkResource{pollInterval: 250 * time.Millisecond}
 }
 
 // smartComputerGroupV2FrameworkResource defines the resource implementation.
 type smartComputerGroupV2FrameworkResource struct {
-	client smartComputerGroupV2API
+	client       smartComputerGroupV2API
+	pollInterval time.Duration
 }
 
 type smartComputerGroupV2API interface {
