@@ -1,0 +1,30 @@
+{
+  "terraform_plan_exit": 0,
+  "terraform_apply_exit": 0,
+  "refreshed_plan_exit": 0,
+  "framework_group_values_match_direct_curl": true,
+  "sdkv2_category_values_match_direct_curl": true,
+  "classic_api_proxy_response_matches_direct_curl": true,
+  "smart_group_proxy_response_matches_direct_curl": true,
+  "version": "11.33.3-t1793127642444",
+  "managed_resources_created": 0,
+  "managed_resources_changed": 0,
+  "direct_oauth_curl_status": 200,
+  "proxied_oauth_curl_status": 200,
+  "direct_and_proxied_version_match": true,
+  "live_provider_implementations": [
+    "SDKv2",
+    "Framework"
+  ],
+  "refreshed_tokens_observed": 19,
+  "proxy_request_statuses": {
+    "200": 44
+  },
+  "shortened_token_expiry_metadata_seconds": 1,
+  "credential_values_recorded": false,
+  "token_cleanup_statuses": {
+    "204": 20
+  },
+  "proxy_stopped": true,
+  "private_credentials_and_terraform_files_removed": true
+}
