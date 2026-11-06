@@ -1,0 +1,22 @@
+[
+  {
+    "kind": "users",
+    "id": 1,
+    "verified_status": 404
+  },
+  {
+    "kind": "users",
+    "id": 2,
+    "verified_status": 404
+  },
+  {
+    "kind": "users",
+    "id": 3,
+    "verified_status": 404
+  },
+  {
+    "kind": "users",
+    "id": 4,
+    "verified_status": 404
+  }
+]
