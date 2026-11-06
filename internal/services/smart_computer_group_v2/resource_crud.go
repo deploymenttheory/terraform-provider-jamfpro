@@ -54,14 +54,11 @@ func (r *smartComputerGroupV2FrameworkResource) Create(ctx context.Context, req 
 		return
 	}
 
-	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	stateContainer := &frameworkCrud.CreateResponseContainer{CreateResponse: resp}
-
-	opts := frameworkCrud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
-	opts.ResourceTypeName = ResourceName
-
-	err = frameworkCrud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	actual, err := r.waitForWrite(ctx, object.ID.ValueString(), smartGroup)
+	if actual != nil {
+		resp.Diagnostics.Append(state(ctx, &object, object.ID.ValueString(), actual)...)
+		resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	}
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Smart Computer Group After Create",
@@ -123,17 +120,17 @@ func (r *smartComputerGroupV2FrameworkResource) Read(ctx context.Context, req re
 // Update updates an existing smart computer group resource in Jamf Pro.
 func (r *smartComputerGroupV2FrameworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan smartComputerGroupV2ResourceModel
-	var state smartComputerGroupV2ResourceModel
+	var prior smartComputerGroupV2ResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &prior)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, prior.ID.ValueString()))
 
 	ctx, cancel := frameworkCrud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -147,7 +144,7 @@ func (r *smartComputerGroupV2FrameworkResource) Update(ctx context.Context, req 
 		return
 	}
 
-	_, err := r.client.UpdateSmartComputerGroupByIDV2WithContext(ctx, state.ID.ValueString(), *smartGroup)
+	_, err := r.client.UpdateSmartComputerGroupByIDV2WithContext(ctx, prior.ID.ValueString(), *smartGroup)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Smart Computer Group V2",
@@ -156,21 +153,18 @@ func (r *smartComputerGroupV2FrameworkResource) Update(ctx context.Context, req 
 		return
 	}
 
-	plan.ID = state.ID
+	plan.ID = prior.ID
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	stateContainer := &frameworkCrud.UpdateResponseContainer{UpdateResponse: resp}
-
-	opts := frameworkCrud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
-	opts.ResourceTypeName = ResourceName
-
-	err = frameworkCrud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	actual, err := r.waitForWrite(ctx, prior.ID.ValueString(), smartGroup)
+	if actual != nil {
+		resp.Diagnostics.Append(state(ctx, &plan, prior.ID.ValueString(), actual)...)
+		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	}
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Smart Computer Group After Update",
@@ -179,7 +173,7 @@ func (r *smartComputerGroupV2FrameworkResource) Update(ctx context.Context, req 
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, prior.ID.ValueString()))
 }
 
 // Delete deletes a smart computer group resource from Jamf Pro.

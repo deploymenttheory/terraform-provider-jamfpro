@@ -6,6 +6,7 @@ import (
 
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	schemahelpers "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/schema/helpers"
@@ -61,7 +62,7 @@ func (f *fakeGroupSDK) DeleteSmartComputerGroupByIDV2WithContext(ctx context.Con
 func testResource(t *testing.T, sdk *fakeGroupSDK) (*smartComputerGroupV2FrameworkResource, schema.Schema) {
 	t.Helper()
 	r := NewSmartComputerGroupV2FrameworkResource().(*smartComputerGroupV2FrameworkResource)
-	r.client = sdk
+	r.client, r.pollInterval = sdk, time.Nanosecond
 	var response resource.SchemaResponse
 	r.Schema(context.Background(), resource.SchemaRequest{}, &response)
 	return r, response.Schema
