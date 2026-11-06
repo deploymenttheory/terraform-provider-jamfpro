@@ -26,7 +26,8 @@ func updateState(d *schema.ResourceData, resp *jamfpro.ResourceDiskEncryptionCon
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	if resp.InstitutionalRecoveryKey != nil {
+	if resp.InstitutionalRecoveryKey != nil &&
+		(resp.InstitutionalRecoveryKey.CertificateType != "" || resp.InstitutionalRecoveryKey.Data != "") {
 		irk := make(map[string]any)
 		irk["certificate_type"] = resp.InstitutionalRecoveryKey.CertificateType
 		irk["data"] = resp.InstitutionalRecoveryKey.Data
