@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.43.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.42.0...v0.43.0) (2026-11-06)
+
+
+### Features
+
+* add reverse-proxy authentication and custom headers ([#1227](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1227)) ([d6144c5](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/d6144c51969d26d3c31050b46bb6b210aa39a500))
+* add smart computer group v3 resource and data source ([#1215](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1215)) ([637601e](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/637601ee70fb0c244a8c08873b307f4c59efb3e5))
+
+
+### Bug Fixes
+
+* align smart group v2 and v3 read-back verification ([#1226](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1226)) ([3c047fc](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3c047fcd05d176bdee51c4fd9216238b5c18255c))
+* honor smart group v2 operation timeouts ([#1220](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1220)) ([f98a552](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/f98a552e5a7fd8b11686e8a92b230512c8901b9d))
+* migrate account group collections to sets ([#1196](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1196)) ([4912260](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4912260ba140d551c99173223fda2ccfa56735b6))
+* migrate enrollment customization collections to sets ([#1191](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1191)) ([1db7dc3](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/1db7dc34e6edb378a3b9d9daf88daee0236b4793))
+* migrate mac application collections to sets ([#1190](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1190)) ([ce28696](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/ce28696b73e0df07135845a7f271f71a5109b9eb))
+* migrate macos configuration profile plist generator collections to sets ([#1193](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1193)) ([833c432](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/833c432284700b9c6e900dba48690e9269730942))
+* migrate policy collection blocks to sets with state upgrades ([#1188](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1188)) ([7296b36](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/7296b36d5b4082be1cc95dd8b4d1cdb283609463))
+* migrate static computer group collections to sets ([#1194](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1194)) ([01744f9](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/01744f9abfb05f6d22034e070682cf6342520f36))
+* migrate static mobile device group collections to sets ([#1195](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1195)) ([4e5a692](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/4e5a692984da661284a6dee7c84be3855a93df23))
+* migrate user group collections to sets ([#1192](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1192)) ([eb5c138](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/eb5c1386318497557048724c94d34345d33500c1))
+* Mobile Device Extension Attribute Value Type ([#1198](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1198)) ([5810d63](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/5810d634daf90e0b7f3212c15ce4280a3dfcb84e))
+* omit empty institutional recovery keys from state ([#1218](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1218)) ([040e70b](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/040e70bf5414950a0eac87831404f9e6a88cefd1))
+* preserve disabled enrollment administrator settings ([#1223](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1223)) ([b9c71e2](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/b9c71e26f7eb31a9ffd8540405555397bba9ca32))
+* recover missing smart computer and mobile groups ([7e0c0e4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/7e0c0e4d1b6d293b8a73ab2f52be4b78f0ed034c))
+* recover missing smart computer and mobile groups on main ([#1224](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1224)) ([7e0c0e4](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/7e0c0e4d1b6d293b8a73ab2f52be4b78f0ed034c))
+* retain typed null for empty smart group v2 criteria ([#1219](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1219)) ([8f27415](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/8f27415f2a2bcd8bd29ef4aa5ea59965c029e3ed))
+* share smart group v2 and v3 write verification ([3c047fc](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/3c047fcd05d176bdee51c4fd9216238b5c18255c))
+* validate account privileges against the server catalog ([#1217](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1217)) ([911e664](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/911e6642a86529abe5f3cf32b7407b06b2f490a3))
+* wait for updated smart group criteria before saving state ([#1225](https://github.com/deploymenttheory/terraform-provider-jamfpro/issues/1225)) ([fabe0dd](https://github.com/deploymenttheory/terraform-provider-jamfpro/commit/fabe0ddd27c09e5cd9ededa406805e82bde2681d))
+
 ## [0.42.0](https://github.com/deploymenttheory/terraform-provider-jamfpro/compare/v0.41.0...v0.42.0) (2026-08-25)
 
 
