@@ -2,6 +2,8 @@ package smart_computer_group_v2
 
 import (
 	"context"
+	apiresponse "github.com/deploymenttheory/go-api-http-client/response"
+
 	"strconv"
 	"testing"
 
@@ -118,4 +120,29 @@ func TestUpdatePreservesPlannedTimeouts(t *testing.T) {
 			require.True(t, sdk.deadline)
 		})
 	}
+}
+
+func TestReadMissingGroupAndPermissionErrors(t *testing.T) {
+	for _, code := range []int{404, 410, 403} {
+		t.Run(strconv.Itoa(code), func(t *testing.T) {
+			sdk := &fakeGroupSDK{readErr: &apiresponse.APIError{StatusCode: code}}
+			r, definition := testResource(t, sdk)
+			before := testPlan(t, definition, testModel(t, "example.pkg"))
+			initial := tfsdk.State{Schema: definition, Raw: before.Raw}
+			response := resource.ReadResponse{State: initial}
+			r.Read(context.Background(), resource.ReadRequest{State: initial}, &response)
+			require.Equal(t, code != 403, response.State.Raw.IsNull())
+			require.Equal(t, code == 403, response.Diagnostics.HasError())
+		})
+	}
+}
+func TestDeleteAlreadyMissingGroup(t *testing.T) {
+	sdk := &fakeGroupSDK{deleteErr: &apiresponse.APIError{StatusCode: 404}}
+	r, definition := testResource(t, sdk)
+	before := testPlan(t, definition, testModel(t, "example.pkg"))
+	initial := tfsdk.State{Schema: definition, Raw: before.Raw}
+	response := resource.DeleteResponse{State: initial}
+	r.Delete(context.Background(), resource.DeleteRequest{State: initial}, &response)
+	require.False(t, response.Diagnostics.HasError(), "%v", response.Diagnostics)
+	require.True(t, response.State.Raw.IsNull())
 }
