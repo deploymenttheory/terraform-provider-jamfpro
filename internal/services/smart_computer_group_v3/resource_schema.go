@@ -19,9 +19,9 @@ import (
 )
 
 const (
-	defaultTimeout = 180 * time.Second
-	readBackBound  = 10 * time.Second
-	pollInterval   = 250 * time.Millisecond
+	defaultTimeout            = 180 * time.Second
+	deleteConfirmationTimeout = 10 * time.Second
+	pollInterval              = 250 * time.Millisecond
 )
 
 var (
@@ -32,9 +32,9 @@ var (
 )
 
 type smartComputerGroupV3FrameworkResource struct {
-	client        smartComputerGroupAPI
-	pollInterval  time.Duration
-	readBackBound time.Duration
+	client                    smartComputerGroupAPI
+	pollInterval              time.Duration
+	deleteConfirmationTimeout time.Duration
 }
 
 // The resource consumes only the SDK operations its lifecycle needs.
@@ -60,8 +60,8 @@ type smartComputerGroupAPI interface {
 // NewSmartComputerGroupV3FrameworkResource creates the Framework resource for smart computer groups v3.
 func NewSmartComputerGroupV3FrameworkResource() resource.Resource {
 	return &smartComputerGroupV3FrameworkResource{
-		pollInterval:  pollInterval,
-		readBackBound: readBackBound,
+		pollInterval:              pollInterval,
+		deleteConfirmationTimeout: deleteConfirmationTimeout,
 	}
 }
 

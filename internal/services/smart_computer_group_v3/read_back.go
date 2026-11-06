@@ -6,35 +6,31 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	frameworkcrud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/framework_crud"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// ReadWithRetry is intentionally not used for post-write smart-group reads:
+// Jamf can return HTTP 200 with stale criteria, which ReadWithRetry treats as success.
+// Both v2 and v3 use WaitForWrite to compare the definition until the operation
+// deadline, retaining the ID and last observed state without replaying writes.
+// SDK reads also avoid Read removing state for a transient 404/410 after a write.
 func (r *smartComputerGroupV3FrameworkResource) waitForWrite(
 	ctx context.Context, id string, desired *jamfpro.ResourceSmartComputerGroupV3, description bool,
 ) (*jamfpro.ResourceSmartComputerGroupV3, error) {
-	ctx, cancel := context.WithTimeout(ctx, r.readBackBound)
-	defer cancel()
-	var last *jamfpro.ResourceSmartComputerGroupV3
-	for {
-		if err := ctx.Err(); err != nil {
-			return last, fmt.Errorf("%w: %w", errReadBackNotConverged, err)
-		}
-		got, err := r.client.GetSmartComputerGroupByIDV3WithContext(ctx, id)
-		if err != nil && !isNotFound(err) {
-			return last, fmt.Errorf("read smart computer group after write: %w", err)
-		}
-		if err == nil && got != nil {
-			last = got
-			if groupReflectsWrite(got, desired, description) {
-				return got, nil
-			}
-		}
-		select {
-		case <-ctx.Done():
-			return last, fmt.Errorf("%w: %w", errReadBackNotConverged, ctx.Err())
-		case <-time.After(r.pollInterval):
-		}
+	got, err := frameworkcrud.WaitForWrite(ctx,
+		func(ctx context.Context) (*jamfpro.ResourceSmartComputerGroupV3, error) {
+			return r.client.GetSmartComputerGroupByIDV3WithContext(ctx, id)
+		},
+		func(got *jamfpro.ResourceSmartComputerGroupV3) bool {
+			return groupReflectsWrite(got, desired, description)
+		},
+		r.pollInterval,
+	)
+	if err != nil {
+		return got, fmt.Errorf("verify smart computer group v3 write: %w", err)
 	}
+	return got, nil
 }
 
 func (r *smartComputerGroupV3FrameworkResource) completeWrite(
@@ -60,7 +56,7 @@ func (r *smartComputerGroupV3FrameworkResource) completeWrite(
 }
 
 func (r *smartComputerGroupV3FrameworkResource) waitUntilGone(ctx context.Context, id string) {
-	ctx, cancel := context.WithTimeout(ctx, r.readBackBound)
+	ctx, cancel := context.WithTimeout(ctx, r.deleteConfirmationTimeout)
 	defer cancel()
 	for ctx.Err() == nil {
 		_, err := r.client.GetSmartComputerGroupByIDV3WithContext(ctx, id)

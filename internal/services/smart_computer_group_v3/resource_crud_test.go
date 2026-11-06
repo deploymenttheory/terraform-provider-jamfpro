@@ -123,7 +123,7 @@ func (f *fakeGroupSDK) UpdateGroupDescriptionByIDV2WithContext(_ context.Context
 func testResource(t *testing.T, sdk *fakeGroupSDK) (*smartComputerGroupV3FrameworkResource, schema.Schema) {
 	t.Helper()
 	r := NewSmartComputerGroupV3FrameworkResource().(*smartComputerGroupV3FrameworkResource)
-	r.client, r.pollInterval, r.readBackBound = sdk, time.Nanosecond, 100*time.Millisecond
+	r.client, r.pollInterval, r.deleteConfirmationTimeout = sdk, time.Nanosecond, 100*time.Millisecond
 	var response resource.SchemaResponse
 	r.Schema(context.Background(), resource.SchemaRequest{}, &response)
 	return r, response.Schema

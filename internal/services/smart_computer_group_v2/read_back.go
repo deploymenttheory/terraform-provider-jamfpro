@@ -3,41 +3,32 @@ package smart_computer_group_v2
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	frameworkcrud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/framework_crud"
 )
 
+// ReadWithRetry is intentionally not used for post-write smart-group reads:
+// Jamf can return HTTP 200 with stale criteria, which ReadWithRetry treats as success.
+// Both v2 and v3 use WaitForWrite to compare the definition until the operation
+// deadline, retaining the ID and last observed state without replaying writes.
+// SDK reads also avoid Read removing state for a transient 404/410 after a write.
 func (r *smartComputerGroupV2FrameworkResource) waitForWrite(ctx context.Context, id string, desired *jamfpro.ResourceSmartComputerGroupV2) (*jamfpro.ResourceSmartComputerGroupV2, error) {
-	var last *jamfpro.ResourceSmartComputerGroupV2
-	interval := r.pollInterval
-	for {
-		if err := ctx.Err(); err != nil {
-			return last, fmt.Errorf("smart group read-back did not converge: %w", err)
-		}
-		got, err := r.client.GetSmartComputerGroupByIDV2WithContext(ctx, id)
-		if err == nil && got != nil {
-			last = got
-			if groupReflectsWrite(got, desired) {
-				return got, nil
-			}
-		} else if err != nil {
-			code := frameworkcrud.APIStatusCode(err)
-			if !frameworkcrud.IsNotFound(err) && code != http.StatusTooManyRequests && code < http.StatusInternalServerError {
-				return last, fmt.Errorf("read smart computer group after write: %w", err)
-			}
-		}
-		select {
-		case <-ctx.Done():
-			return last, fmt.Errorf("smart group read-back did not converge: %w", ctx.Err())
-		case <-time.After(interval):
-		}
-		interval = min(interval*2, 5*time.Second)
+	got, err := frameworkcrud.WaitForWrite(ctx,
+		func(ctx context.Context) (*jamfpro.ResourceSmartComputerGroupV2, error) {
+			return r.client.GetSmartComputerGroupByIDV2WithContext(ctx, id)
+		},
+		func(got *jamfpro.ResourceSmartComputerGroupV2) bool {
+			return groupReflectsWrite(got, desired)
+		},
+		r.pollInterval,
+	)
+	if err != nil {
+		return got, fmt.Errorf("verify smart computer group v2 write: %w", err)
 	}
+	return got, nil
 }
 
 func groupReflectsWrite(got, desired *jamfpro.ResourceSmartComputerGroupV2) bool {
