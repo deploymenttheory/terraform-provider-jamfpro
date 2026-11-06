@@ -30,7 +30,7 @@ func state(ctx context.Context, data *smartComputerGroupV2ResourceModel, resourc
 	}
 
 	criteriaModels := make([]smartComputerGroupV2CriteriaDataModel, 0, len(resp.Criteria))
-	for _, criterion := range resp.Criteria {
+	for _, criterion := range orderedCriteria(resp.Criteria) {
 		criteriaModel := smartComputerGroupV2CriteriaDataModel{
 			Name:       types.StringValue(criterion.Name),
 			Priority:   types.Int64Value(int64(criterion.Priority)),
