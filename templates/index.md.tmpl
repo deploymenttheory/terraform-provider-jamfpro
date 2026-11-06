@@ -13,4 +13,27 @@ management of [Jamf Pro](https://www.jamf.com/products/jamf-pro/) configuration 
 A typical provider configuration would look something like:
 {{ tffile "examples/provider/provider.tf" }}
 
+## Reverse-proxy authentication
+
+For a reverse proxy that requires Basic credentials in `Authorization` and the Jamf bearer token in another header, use `auth_method = "oauth2"`, set `bearer_token_header` to the proxy's token-header name, and supply the proxy credentials through a `custom_headers` block. The provider obtains and refreshes the Jamf token automatically; do not supply a static Jamf token as a custom header.
+
+```hcl
+provider "jamfpro" {
+  jamfpro_instance_fqdn = "https://proxy.company.com/proxypath/"
+  auth_method          = "oauth2"
+  client_id            = var.jamfpro_client_id
+  client_secret        = var.jamfpro_client_secret
+  bearer_token_header  = "X-Jamf-Authorization"
+
+  custom_headers {
+    name  = "Authorization"
+    value = "Basic ${base64encode("${var.proxy_username}:${var.proxy_password}")}"
+  }
+}
+```
+
+The proxy base URL may include a path prefix. Custom headers apply to token requests and API calls, including token refresh. `bearer_token_header` defaults to `Authorization` and can also be set using `JAMFPRO_BEARER_TOKEN_HEADER`. Custom header values are sensitive. Duplicate header names and custom headers that collide with the managed bearer-token header are rejected.
+
+Jamf username/password authentication needs `Authorization` for its own token request, so use OAuth2 when the proxy also requires that header. When custom headers or a custom token header are configured, redirects to another origin are blocked; the proxy must forward requests rather than redirect them to Jamf.
+
 {{ .SchemaMarkdown | trimspace }}

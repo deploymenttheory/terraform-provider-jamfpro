@@ -20,6 +20,8 @@ type frameworkProviderModel struct {
 	TokenRefreshBufferPeriodSeconds   types.Int64  `tfsdk:"token_refresh_buffer_period_seconds"`
 	MandatoryRequestDelayMilliseconds types.Int64  `tfsdk:"mandatory_request_delay_milliseconds"`
 	CustomCookies                     types.List   `tfsdk:"custom_cookies"`
+	CustomHeaders                     types.List   `tfsdk:"custom_headers"`
+	BearerTokenHeader                 types.String `tfsdk:"bearer_token_header"`
 }
 
 // customCookieModel describes the custom cookie nested model.

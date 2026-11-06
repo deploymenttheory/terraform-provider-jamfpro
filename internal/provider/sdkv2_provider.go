@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
@@ -135,7 +136,7 @@ func GetJamfFqdn(d *schema.ResourceData, diags *diag.Diagnostics) string {
 		})
 		return ""
 	}
-	return jamf_fqdn.(string)
+	return strings.TrimRight(jamf_fqdn.(string), "/")
 }
 
 /*
@@ -290,6 +291,12 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc(envVarJamfProFQDN, ""),
 				Description: "The Jamf Pro FQDN (fully qualified domain name). Required when auth_provider is 'direct'. Example: https://mycompany.jamfcloud.com",
 			},
+			"bearer_token_header": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("JAMFPRO_BEARER_TOKEN_HEADER", ""),
+				Description: "HTTP header used for the automatically refreshed Jamf bearer token. Defaults to Authorization. Set a custom header name when a reverse proxy requires Basic credentials in Authorization. Can also be set with JAMFPRO_BEARER_TOKEN_HEADER.",
+			},
 			"auth_method": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -364,6 +371,16 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Default:     true,
 				Description: "Define whether sensitive fields should be hidden in logs. Default to hiding sensitive data in logs",
+			},
+			"custom_headers": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Default:     nil,
+				Description: "Additional HTTP headers sent to the configured Jamf Pro or gateway origin for token requests and API calls. Use this for reverse-proxy authentication or routing headers. Header values are sensitive. Cross-origin redirects are blocked when custom headers are configured.",
+				Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+					"name":  {Type: schema.TypeString, Required: true, Description: "Name of the HTTP header, for example Authorization or X-Company-Id. Header names must be unique, ignoring case."},
+					"value": {Type: schema.TypeString, Required: true, Sensitive: true, Description: "Value of the HTTP header. May contain proxy credentials or API keys and is treated as sensitive."},
+				}},
 			},
 			"custom_cookies": {
 				Type:        schema.TypeList,
@@ -593,11 +610,28 @@ func Provider() *schema.Provider {
 		}
 
 		hide_sensitive_data := d.Get("hide_sensitive_data").(bool)
-		bootstrapClient := http.Client{}
+		var headers []customHeaderModel
+		for _, item := range d.Get("custom_headers").([]any) {
+			header := item.(map[string]any)
+			headers = append(headers, customHeaderModel{Name: header["name"].(string), Value: header["value"].(string)})
+		}
+		headerConfig, err := requestHeaderConfig(headers, d.Get("bearer_token_header").(string), authMethod)
+		if err != nil {
+			return nil, append(diags, diag.Diagnostic{Severity: diag.Error, Summary: "Invalid request header configuration", Detail: err.Error()})
+		}
+		baseURL := strings.TrimRight(d.Get("jamfpro_instance_fqdn").(string), "/")
+		if authProvider == "platform" {
+			baseURL = strings.TrimRight(d.Get("platform_base_url").(string), "/")
+		}
+		// Token bootstrap and SDK requests must use the same library-owned header policy.
+		bootstrapClient, err := headerConfig.HTTPClient(http.Client{}, baseURL)
+		if err != nil {
+			return nil, append(diags, diag.Diagnostic{Severity: diag.Error, Summary: "Invalid request header configuration", Detail: err.Error()})
+		}
 
 		switch authProvider {
 		case "platform":
-			platformBaseURL := d.Get("platform_base_url").(string)
+			platformBaseURL := strings.TrimRight(d.Get("platform_base_url").(string), "/")
 			if platformBaseURL == "" {
 				return nil, append(diags, diag.Diagnostic{
 					Severity: diag.Error,
@@ -767,6 +801,7 @@ func Provider() *schema.Provider {
 			HideSensitiveData:        d.Get("hide_sensitive_data").(bool),
 			TokenRefreshBufferPeriod: tokenRefrshBufferPeriod,
 			CustomCookies:            cookiesList,
+			RequestHeaders:           headerConfig,
 			MandatoryRequestDelay:    time.Duration(d.Get("mandatory_request_delay_milliseconds").(int)) * time.Millisecond,
 			RetryEligiableRequests:   false, // Forced because terraform handles concurrency
 			HTTP:                     http.Client{},

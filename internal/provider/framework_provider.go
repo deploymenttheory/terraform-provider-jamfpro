@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
@@ -50,6 +51,10 @@ func (p *frameworkProvider) Schema(ctx context.Context, req provider.SchemaReque
 			"jamfpro_instance_fqdn": schema.StringAttribute{
 				Optional:    true,
 				Description: "The Jamf Pro FQDN (fully qualified domain name). Required when auth_provider is 'direct'. Example: https://mycompany.jamfcloud.com",
+			},
+			"bearer_token_header": schema.StringAttribute{
+				Optional:    true,
+				Description: "HTTP header used for the automatically refreshed Jamf bearer token. Defaults to Authorization. Set a custom header name when a reverse proxy requires Basic credentials in Authorization. Can also be set with JAMFPRO_BEARER_TOKEN_HEADER.",
 			},
 			"auth_method": schema.StringAttribute{
 				Optional:    true,
@@ -118,6 +123,15 @@ func (p *frameworkProvider) Schema(ctx context.Context, req provider.SchemaReque
 			},
 		},
 		Blocks: map[string]schema.Block{
+			"custom_headers": schema.ListNestedBlock{
+				Description: "Additional HTTP headers sent to the configured Jamf Pro or gateway origin for token requests and API calls. Use this for reverse-proxy authentication or routing headers. Header values are sensitive. Cross-origin redirects are blocked when custom headers are configured.",
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"name":  schema.StringAttribute{Required: true, Description: "Name of the HTTP header, for example Authorization or X-Company-Id. Header names must be unique, ignoring case."},
+						"value": schema.StringAttribute{Required: true, Sensitive: true, Description: "Value of the HTTP header. May contain proxy credentials or API keys and is treated as sensitive."},
+					},
+				},
+			},
 			"custom_cookies": schema.ListNestedBlock{
 				Description: "Persistent custom cookies used by HTTP Client in all requests.",
 				NestedObject: schema.NestedBlockObject{
@@ -146,14 +160,14 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 	}
 
 	// Get values with environment variable fallbacks
-	instanceFQDN := getStringValueWithEnvFallback(config.InstanceFQDN, "JAMFPRO_INSTANCE_FQDN")
+	instanceFQDN := strings.TrimRight(getStringValueWithEnvFallback(config.InstanceFQDN, "JAMFPRO_INSTANCE_FQDN"), "/")
 	authMethod := getStringValueWithEnvFallback(config.AuthMethod, "JAMFPRO_AUTH_METHOD")
 	authProvider := getStringValueWithEnvFallback(config.AuthProvider, "JAMFPRO_AUTH_PROVIDER")
 	clientID := getStringValueWithEnvFallback(config.ClientID, "JAMFPRO_CLIENT_ID")
 	clientSecret := getStringValueWithEnvFallback(config.ClientSecret, "JAMFPRO_CLIENT_SECRET")
 	basicUsername := getStringValueWithEnvFallback(config.BasicAuthUsername, "JAMFPRO_BASIC_USERNAME")
 	basicPassword := getStringValueWithEnvFallback(config.BasicAuthPassword, "JAMFPRO_BASIC_PASSWORD")
-	platformBaseURL := getStringValueWithEnvFallback(config.PlatformBaseURL, "JAMFPRO_PLATFORM_BASE_URL")
+	platformBaseURL := strings.TrimRight(getStringValueWithEnvFallback(config.PlatformBaseURL, "JAMFPRO_PLATFORM_BASE_URL"), "/")
 	platformTenantID := getStringValueWithEnvFallback(config.PlatformTenantID, "JAMFPRO_PLATFORM_TENANT_ID")
 
 	// Default auth_provider to "direct" if not set
@@ -304,14 +318,29 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 		sugaredLogger = logger.Sugar()
 	}
 
-	// Create bootstrap HTTP client - matching SDKv2 provider configuration
-	bootstrapClient := http.Client{
-		Timeout: 60 * time.Second,
+	var headers []customHeaderModel
+	if !config.CustomHeaders.IsNull() {
+		resp.Diagnostics.Append(config.CustomHeaders.ElementsAs(ctx, &headers, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
-
-	// Create Jamf Pro integration based on auth_provider and auth_method
+	headerConfig, err := requestHeaderConfig(headers, getStringValueWithEnvFallback(config.BearerTokenHeader, "JAMFPRO_BEARER_TOKEN_HEADER"), authMethod)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid request header configuration", err.Error())
+		return
+	}
+	baseURL := instanceFQDN
+	if authProvider == "platform" {
+		baseURL = platformBaseURL
+	}
+	// Token bootstrap and SDK requests must use the same library-owned header policy.
+	bootstrapClient, err := headerConfig.HTTPClient(http.Client{Timeout: 60 * time.Second}, baseURL)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid request header configuration", err.Error())
+		return
+	}
 	var jamfIntegration *jamfprointegration.Integration
-	var err error
 
 	switch authProvider {
 	case "platform":
@@ -409,6 +438,7 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 		HideSensitiveData:        hideSensitiveData,
 		TokenRefreshBufferPeriod: tokenRefreshBuffer,
 		CustomCookies:            cookiesList,
+		RequestHeaders:           headerConfig,
 		MandatoryRequestDelay:    mandatoryRequestDelay,
 		RetryEligiableRequests:   false, // Forced because terraform handles concurrency
 		HTTP:                     http.Client{},
