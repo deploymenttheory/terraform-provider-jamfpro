@@ -38,7 +38,7 @@ func (r *smartComputerGroupV2FrameworkResource) Create(ctx context.Context, req 
 		return
 	}
 
-	createdGroup, err := r.client.CreateSmartComputerGroupV2(*smartGroup)
+	createdGroup, err := r.client.CreateSmartComputerGroupV2WithContext(ctx, *smartGroup)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Smart Computer Group",
@@ -93,7 +93,7 @@ func (r *smartComputerGroupV2FrameworkResource) Read(ctx context.Context, req re
 	defer cancel()
 
 	resourceID := object.ID.ValueString()
-	smartGroup, err := r.client.GetSmartComputerGroupByIDV2(resourceID)
+	smartGroup, err := r.client.GetSmartComputerGroupByIDV2WithContext(ctx, resourceID)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Smart Computer Group V2",
@@ -143,7 +143,7 @@ func (r *smartComputerGroupV2FrameworkResource) Update(ctx context.Context, req 
 		return
 	}
 
-	_, err := r.client.UpdateSmartComputerGroupByIDV2(state.ID.ValueString(), *smartGroup)
+	_, err := r.client.UpdateSmartComputerGroupByIDV2WithContext(ctx, state.ID.ValueString(), *smartGroup)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Smart Computer Group V2",
@@ -153,7 +153,6 @@ func (r *smartComputerGroupV2FrameworkResource) Update(ctx context.Context, req 
 	}
 
 	plan.ID = state.ID
-	plan.Timeouts = state.Timeouts
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -196,7 +195,7 @@ func (r *smartComputerGroupV2FrameworkResource) Delete(ctx context.Context, req 
 	}
 	defer cancel()
 
-	err := r.client.DeleteSmartComputerGroupByIDV2(object.ID.ValueString())
+	err := r.client.DeleteSmartComputerGroupByIDV2WithContext(ctx, object.ID.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
