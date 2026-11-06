@@ -2,6 +2,7 @@ package user_group
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -9,6 +10,11 @@ import (
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	sharedschemas "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/shared_schemas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+var (
+	errInvalidUserID       = errors.New("user ID must be a positive integer")
+	errMissingUserIdentity = errors.New("user operation requires id or username")
 )
 
 // constructJamfProUserGroup constructs a ResourceUserGroup object from the provided schema data.
@@ -80,11 +86,11 @@ func extractUsers(usersInterface []any) ([]jamfpro.UserGroupSubsetUserItem, erro
 			var err error
 			id, err = strconv.Atoi(raw)
 			if err != nil || id <= 0 {
-				return nil, fmt.Errorf("user ID must be a positive integer: %q", raw)
+				return nil, fmt.Errorf("%w: %q", errInvalidUserID, raw)
 			}
 		}
 		if id == 0 && u["username"].(string) == "" {
-			return nil, fmt.Errorf("user operation requires id or username")
+			return nil, errMissingUserIdentity
 		}
 		userItem := jamfpro.UserGroupSubsetUserItem{
 			ID:           id,

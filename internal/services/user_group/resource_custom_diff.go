@@ -2,9 +2,14 @@ package user_group
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+var errConflictingMembershipManagement = errors.New(
+	"assigned_user_ids cannot be combined with user_additions or user_deletions; choose membership or operation management",
 )
 
 // mainCustomDiffFunc orchestrates all custom diff validations.
@@ -38,7 +43,7 @@ func validateIsSmartAttribute(_ context.Context, diff *schema.ResourceDiff, _ an
 	usersBlockExists := len(diff.Get("assigned_user_ids").(*schema.Set).List()) > 0
 	operationsExist := diff.Get("user_additions").(*schema.Set).Len() > 0 || diff.Get("user_deletions").(*schema.Set).Len() > 0
 	if assignedUserIDsConfigured && operationsExist {
-		return fmt.Errorf("assigned_user_ids cannot be combined with user_additions or user_deletions; choose membership or operation management")
+		return errConflictingMembershipManagement
 	}
 	criteriaBlockExists := len(diff.Get("criteria").([]any)) > 0
 
@@ -55,7 +60,9 @@ func validateIsSmartAttribute(_ context.Context, diff *schema.ResourceDiff, _ an
 	}
 
 	if !assignedUserIDsConfigured && (diff.HasChange("user_additions") || diff.HasChange("user_deletions")) {
-		return diff.SetNewComputed("assigned_user_ids")
+		if err := diff.SetNewComputed("assigned_user_ids"); err != nil {
+			return fmt.Errorf("mark assigned_user_ids as computed: %w", err)
+		}
 	}
 	return nil
 }

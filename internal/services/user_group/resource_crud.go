@@ -2,6 +2,7 @@ package user_group
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 	crud "github.com/deploymenttheory/terraform-provider-jamfpro/internal/common/sdkv2_crud"
@@ -60,7 +61,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnost
 			if !config.IsNull() && config.GetAttr("assigned_user_ids").IsNull() {
 				current, err := client.GetUserGroupByID(id)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("get user group %q to preserve membership: %w", id, err)
 				}
 				// The SDK always serializes a users element. Preserve current membership
 				// when applying commands so an empty element cannot clear the group first.
