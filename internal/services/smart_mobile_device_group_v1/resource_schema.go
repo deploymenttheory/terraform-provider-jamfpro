@@ -34,7 +34,14 @@ func NewSmartMobileDeviceGroupV1FrameworkResource() resource.Resource {
 
 // smartMobileDeviceGroupV1FrameworkResource defines the resource implementation.
 type smartMobileDeviceGroupV1FrameworkResource struct {
-	client *jamfpro.Client
+	client smartMobileDeviceGroupV1API
+}
+
+type smartMobileDeviceGroupV1API interface {
+	CreateSmartMobileDeviceGroupV1(jamfpro.ResourceSmartMobileDeviceGroupV1) (*jamfpro.ResponseSmartMobileDeviceGroupCreateV1, error)
+	GetSmartMobileDeviceGroupByIDV1WithContext(context.Context, string) (*jamfpro.ResourceSmartMobileDeviceGroupV1, error)
+	UpdateSmartMobileDeviceGroupByIDV1(string, jamfpro.ResourceSmartMobileDeviceGroupV1) (*jamfpro.ResourceSmartMobileDeviceGroupV1, error)
+	DeleteSmartMobileDeviceGroupByIDV1WithContext(context.Context, string) error
 }
 
 func (r *smartMobileDeviceGroupV1FrameworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
