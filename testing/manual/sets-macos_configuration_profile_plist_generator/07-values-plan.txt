@@ -1,0 +1,78 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - deploymenttheory/jamfpro in <test-workspace>/bin-macos_configuration_profile_plist_generator
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+jamfpro_macos_configuration_profile_plist_generator.test: Refreshing state... [id=1]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  ~ update in-place
+
+Terraform will perform the following actions:
+
+  # jamfpro_macos_configuration_profile_plist_generator.test will be updated in-place
+  ~ resource "jamfpro_macos_configuration_profile_plist_generator" "test" {
+        id                  = "1"
+        name                = "tf-sets-plist-20260919"
+        # (8 unchanged attributes hidden)
+
+      ~ payloads {
+            # (10 unchanged attributes hidden)
+
+          ~ payload_content {
+                # (10 unchanged attributes hidden)
+
+              - setting {
+                  - key        = "Alpha" -> null
+                  - value      = "first" -> null
+                    # (1 unchanged attribute hidden)
+                }
+              - setting {
+                  - key        = "Zulu" -> null
+                  - value      = "last" -> null
+                    # (1 unchanged attribute hidden)
+                }
+              + setting {
+                  + key        = "Nested"
+                    # (2 unchanged attributes hidden)
+
+                  + dictionary {
+                      + key        = "Alpha"
+                      + value      = "first"
+                        # (1 unchanged attribute hidden)
+                    }
+                  + dictionary {
+                      + key        = "Zulu"
+                      + value      = "last"
+                        # (1 unchanged attribute hidden)
+                    }
+                }
+              + setting {
+                  + key        = "Zulu"
+                  + value      = "changed"
+                    # (1 unchanged attribute hidden)
+                }
+              + setting {
+                  + array_json = jsonencode(
+                        [
+                          + "b",
+                          + "a",
+                          + "b",
+                        ]
+                    )
+                  + key        = "Ordered"
+                    # (1 unchanged attribute hidden)
+                }
+            }
+        }
+
+        # (2 unchanged blocks hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.
