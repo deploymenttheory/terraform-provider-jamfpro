@@ -1,0 +1,91 @@
+[
+  {
+    "check": "create native and Classic fallback with descriptions",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "clean plan after create",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "update names descriptions and complete criteria on both paths",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "clean plan after update",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "clear descriptions on native and fallback paths",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "clean plan after description clear",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "clear all native criteria",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "clean plan after criteria clear",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "out-of-band deletion plans recreation",
+    "exit_code": 2,
+    "passed": true
+  },
+  {
+    "check": "recreate deleted native group",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "remove test state association for import",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "import existing group by numeric ID",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "apply imported resource with configured timeouts",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "clean plan after import",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "reject noncontiguous priorities before write",
+    "exit_code": 1,
+    "passed": true
+  },
+  {
+    "check": "destroy all Terraform test groups",
+    "exit_code": 0,
+    "passed": true
+  },
+  {
+    "check": "verify all created groups absent",
+    "passed": true,
+    "ids": [
+      "26997",
+      "26998",
+      "26999"
+    ]
+  }
+]
