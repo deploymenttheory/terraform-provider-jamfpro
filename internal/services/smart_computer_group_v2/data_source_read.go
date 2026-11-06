@@ -130,6 +130,9 @@ func (d *smartComputerGroupV2FrameworkDataSource) Read(ctx context.Context, req 
 	}
 
 	criteriaList, criteriaDiags := schemahelpers.Flatten(ctx, criteriaModels)
+	if len(criteriaModels) == 0 {
+		criteriaList = types.ListNull(schemahelpers.ObjectType)
+	}
 	resp.Diagnostics.Append(criteriaDiags...)
 	if resp.Diagnostics.HasError() {
 		return
