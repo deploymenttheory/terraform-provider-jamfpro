@@ -93,8 +93,12 @@ func (r *smartMobileDeviceGroupV1FrameworkResource) Read(ctx context.Context, re
 	defer cancel()
 
 	resourceID := object.ID.ValueString()
-	smartGroup, err := r.client.GetSmartMobileDeviceGroupByIDV1(resourceID)
+	smartGroup, err := r.client.GetSmartMobileDeviceGroupByIDV1WithContext(ctx, resourceID)
 	if err != nil {
+		if frameworkCrud.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error Reading Smart Mobile Device Group V1",
 			fmt.Sprintf("Could not read smart mobile device group ID %s: %s", resourceID, err.Error()),
@@ -196,9 +200,9 @@ func (r *smartMobileDeviceGroupV1FrameworkResource) Delete(ctx context.Context, 
 	}
 	defer cancel()
 
-	err := r.client.DeleteSmartMobileDeviceGroupByIDV1(object.ID.ValueString())
+	err := r.client.DeleteSmartMobileDeviceGroupByIDV1WithContext(ctx, object.ID.ValueString())
 
-	if err != nil {
+	if err != nil && !frameworkCrud.IsNotFound(err) {
 		resp.Diagnostics.AddError(
 			"Error Deleting Smart Mobile Device Group V1",
 			fmt.Sprintf("Could not delete smart mobile device group: %s: %s", ResourceName, err.Error()),

@@ -95,6 +95,10 @@ func (r *smartComputerGroupV2FrameworkResource) Read(ctx context.Context, req re
 	resourceID := object.ID.ValueString()
 	smartGroup, err := r.client.GetSmartComputerGroupByIDV2WithContext(ctx, resourceID)
 	if err != nil {
+		if frameworkCrud.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Error Reading Smart Computer Group V2",
 			fmt.Sprintf("Could not read smart computer group ID %s: %s", resourceID, err.Error()),
@@ -197,7 +201,7 @@ func (r *smartComputerGroupV2FrameworkResource) Delete(ctx context.Context, req 
 
 	err := r.client.DeleteSmartComputerGroupByIDV2WithContext(ctx, object.ID.ValueString())
 
-	if err != nil {
+	if err != nil && !frameworkCrud.IsNotFound(err) {
 		resp.Diagnostics.AddError(
 			"Error Deleting Smart Computer Group V2",
 			fmt.Sprintf("Could not delete smart computer group: %s: %s", ResourceName, err.Error()),
