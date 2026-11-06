@@ -24,9 +24,8 @@ func apiError(err error) *apiresponse.APIError {
 }
 
 var (
-	errMissingGroupID       = errors.New("jamf pro returned no valid group ID after creating the group")
-	errMissingResponse      = errors.New("jamf pro returned an empty response")
-	errReadBackNotConverged = errors.New("smart computer group read-back did not reflect the completed write")
+	errMissingGroupID  = errors.New("jamf pro returned no valid group ID after creating the group")
+	errMissingResponse = errors.New("jamf pro returned an empty response")
 )
 
 func isNotFound(err error) bool {
