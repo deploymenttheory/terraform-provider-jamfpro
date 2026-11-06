@@ -29,6 +29,11 @@ func state(ctx context.Context, data *smartComputerGroupV2ResourceModel, resourc
 		data.SiteID = types.StringNull()
 	}
 
+	if len(resp.Criteria) == 0 && data.Criteria.IsNull() {
+		data.Criteria = types.ListNull(schemahelpers.ObjectType)
+		return diags
+	}
+
 	criteriaModels := make([]smartComputerGroupV2CriteriaDataModel, 0, len(resp.Criteria))
 	for _, criterion := range resp.Criteria {
 		criteriaModel := smartComputerGroupV2CriteriaDataModel{
