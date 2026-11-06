@@ -1,42 +1,33 @@
 package jamf_privileges
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
 )
+
+var errEmptyPrivilegeCatalog = errors.New("cannot validate privileges: the Jamf Pro privilege catalog is empty")
 
 type invalidPrivInfo struct {
 	privileges  []string
 	suggestions map[string]string
 }
 
-// ValidateAccountPrivileges validates the privileges of an account against a lookup of all available
-// privileges based upon on the first found jamf pro accout with Administrator privilege set.
-func ValidateAccountPrivileges(client *jamfpro.Client, privileges jamfpro.AccountSubsetPrivileges) error {
-	versionInfo, err := client.GetJamfProVersion()
-	if err != nil {
-		return fmt.Errorf("failed to fetch Jamf Pro version: %v", err)
-	}
+type privilegeCatalog interface {
+	GetJamfAPIPrivileges() (*jamfpro.ResourceApiRolePrivilegesList, error)
+}
 
-	accountsList, err := client.GetAccounts()
+// ValidateAccountPrivileges validates names against the connected server's privilege
+// catalog. An administrator's assigned privileges are not a complete catalog.
+func ValidateAccountPrivileges(client privilegeCatalog, privileges jamfpro.AccountSubsetPrivileges) error {
+	catalog, err := client.GetJamfAPIPrivileges()
 	if err != nil {
-		return fmt.Errorf("failed to fetch accounts for validation: %v", err)
+		return fmt.Errorf("failed to fetch the Jamf Pro privilege catalog (requires Read API Roles): %w", err)
 	}
-
-	var adminAccount *jamfpro.ResourceAccount
-	for _, user := range accountsList.Users {
-		account, err := client.GetAccountByID(fmt.Sprint(user.ID))
-		if err != nil {
-			continue
-		}
-		if account.PrivilegeSet == "Administrator" {
-			adminAccount = account
-			log.Printf("[WARN] No administrator account found for comparison, privilege validation will be skipped")
-			break
-		}
+	if catalog == nil || len(catalog.Privileges) == 0 {
+		return errEmptyPrivilegeCatalog
 	}
 
 	invalidPrivileges := make(map[string]invalidPrivInfo)
@@ -70,17 +61,17 @@ func ValidateAccountPrivileges(client *jamfpro.Client, privileges jamfpro.Accoun
 		}
 	}
 
-	validatePrivilegeSet(privileges.JSSObjects, adminAccount.Privileges.JSSObjects, "JSS Objects")
-	validatePrivilegeSet(privileges.JSSSettings, adminAccount.Privileges.JSSSettings, "JSS Settings")
-	validatePrivilegeSet(privileges.JSSActions, adminAccount.Privileges.JSSActions, "JSS Actions")
-	validatePrivilegeSet(privileges.Recon, adminAccount.Privileges.Recon, "Recon")
-	validatePrivilegeSet(privileges.CasperAdmin, adminAccount.Privileges.CasperAdmin, "Casper Admin")
-	validatePrivilegeSet(privileges.CasperRemote, adminAccount.Privileges.CasperRemote, "Casper Remote")
-	validatePrivilegeSet(privileges.CasperImaging, adminAccount.Privileges.CasperImaging, "Casper Imaging")
+	validatePrivilegeSet(privileges.JSSObjects, catalog.Privileges, "JSS Objects")
+	validatePrivilegeSet(privileges.JSSSettings, catalog.Privileges, "JSS Settings")
+	validatePrivilegeSet(privileges.JSSActions, catalog.Privileges, "JSS Actions")
+	validatePrivilegeSet(privileges.Recon, catalog.Privileges, "Recon")
+	validatePrivilegeSet(privileges.CasperAdmin, catalog.Privileges, "Casper Admin")
+	validatePrivilegeSet(privileges.CasperRemote, catalog.Privileges, "Casper Remote")
+	validatePrivilegeSet(privileges.CasperImaging, catalog.Privileges, "Casper Imaging")
 
 	if len(invalidPrivileges) > 0 {
 		var msg strings.Builder
-		msg.WriteString(fmt.Sprintf("Invalid privileges found when compared to Jamf Pro version %s:\n", *versionInfo.Version))
+		msg.WriteString("Invalid privilege names absent from this Jamf Pro server's privilege catalog:\n")
 
 		for category, info := range invalidPrivileges {
 			msg.WriteString(fmt.Sprintf("\nInvalid %s privileges:\n", category))
