@@ -71,11 +71,11 @@ The provider uses two fields to configure authentication: `auth_method` (how you
 | Provider | Description | Additional Required Fields |
 |----------|-------------|---------------------------|
 | `direct` (default) | Authenticates directly against the Jamf Pro instance | `jamfpro_instance_fqdn` |
-| `platform` | Authenticates via the Jamf Platform gateway (oauth2 only) | `platform_base_url`, `platform_tenant_id` |
+| `platform` | Authenticates via the Jamf Platform gateway (oauth2 only) | `platform_base_url`, exactly one of `platform_environment_id` (preferred) or `platform_tenant_id` |
 
 > **Note:** Platform gateway authentication requires credentials from Jamf Account, not Jamf Pro. See the [Getting Started with Platform API](https://developer.jamf.com/platform-api/reference/getting-started-with-platform-api) guide for setup instructions.
 
-All fields can also be set via environment variables (e.g. `JAMFPRO_AUTH_METHOD`, `JAMFPRO_AUTH_PROVIDER`, `JAMFPRO_CLIENT_ID`, `JAMFPRO_PLATFORM_TENANT_ID`). See the [provider documentation](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs) for full details.
+All fields can also be set via environment variables (e.g. `JAMFPRO_AUTH_METHOD`, `JAMFPRO_AUTH_PROVIDER`, `JAMFPRO_CLIENT_ID`, `JAMFPRO_PLATFORM_ENVIRONMENT_ID`, `JAMFPRO_PLATFORM_TENANT_ID`). Environment scope is preferred for cross-product platform access; the environment ID and tenant ID are mutually exclusive. See the [provider documentation](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest/docs) for full details.
 
 ## Getting Started
 

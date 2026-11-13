@@ -13,6 +13,7 @@ type frameworkProviderModel struct {
 	BasicAuthPassword                 types.String `tfsdk:"basic_auth_password"`
 	PlatformBaseURL                   types.String `tfsdk:"platform_base_url"`
 	PlatformTenantID                  types.String `tfsdk:"platform_tenant_id"`
+	PlatformEnvironmentID             types.String `tfsdk:"platform_environment_id"`
 	EnableClientSDKLogs               types.Bool   `tfsdk:"enable_client_sdk_logs"`
 	ClientSDKLogExportPath            types.String `tfsdk:"client_sdk_log_export_path"`
 	HideSensitiveData                 types.Bool   `tfsdk:"hide_sensitive_data"`
