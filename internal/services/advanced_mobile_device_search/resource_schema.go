@@ -73,7 +73,7 @@ func ResourceJamfProAdvancedMobileDeviceSearches() *schema.Resource {
 								"greater than", "less than", "greater than or equal", "less than or equal",
 								"matches regex", "does not match regex", "member of", "not member of",
 								"more than x days ago", "less than x days ago", "in more than x days",
-								"in less than x days",
+								"in less than x days", "before (yyyy-mm-dd)", "after (yyyy-mm-dd)",
 							}, false),
 							Description: "Type of search to perform",
 						},
