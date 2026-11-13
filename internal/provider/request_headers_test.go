@@ -154,7 +154,7 @@ func TestPlatformEnvironmentScopeUsesHeaderAndUnscopedPath(t *testing.T) {
 					if err := json.NewEncoder(w).Encode(map[string]any{"access_token": "platform-token", "expires_in": 3600}); err != nil {
 						t.Error(err)
 					}
-				case "/api/pro/v1/jamf-pro-version":
+				case "/pro/v1/jamf-pro-version":
 					if got := req.Header.Get("X-Environment-Id"); got != "environment-id" {
 						t.Errorf("X-Environment-Id = %q, want environment-id", got)
 					}
