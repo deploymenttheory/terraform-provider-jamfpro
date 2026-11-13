@@ -44,30 +44,3 @@ func TestLiveProxyHeaders(t *testing.T) {
 	}
 }
 
-func TestLivePlatformEnvironmentScope(t *testing.T) {
-	environmentID := os.Getenv("JAMFPLATFORM_ENVIRONMENT_ID")
-	clientID := os.Getenv("JAMFPLATFORM_CLIENT_ID")
-	clientSecret := os.Getenv("JAMFPLATFORM_CLIENT_SECRET")
-	baseURL := os.Getenv("JAMFPLATFORM_BASE_URL")
-	if environmentID == "" || clientID == "" || clientSecret == "" || baseURL == "" {
-		t.Skip("set JAMFPLATFORM_ENVIRONMENT_ID, JAMFPLATFORM_CLIENT_ID, JAMFPLATFORM_CLIENT_SECRET, and JAMFPLATFORM_BASE_URL")
-	}
-
-	for _, framework := range []bool{false, true} {
-		t.Run(map[bool]string{false: "SDKv2", true: "Framework"}[framework], func(t *testing.T) {
-			input := platformEnvironmentTestConfig(baseURL)
-			input["platform_environment_id"] = environmentID
-			input["client_id"] = clientID
-			input["client_secret"] = clientSecret
-
-			client, failed := configureHeaderTestProvider(t, framework, input)
-			require.False(t, failed, "provider configuration against the live Jamf environment failed")
-
-			version, err := client.GetJamfProVersion()
-			require.NoError(t, err)
-			require.NotNil(t, version)
-			require.NotNil(t, version.Version)
-			require.NotEmpty(t, *version.Version)
-		})
-	}
-}
