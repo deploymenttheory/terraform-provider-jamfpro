@@ -87,6 +87,16 @@ func headerTestConfig(baseURL string) map[string]any {
 	}
 }
 
+func platformEnvironmentTestConfig(baseURL string) map[string]any {
+	return map[string]any{ // #nosec G101 -- Dummy credentials accepted only by the local httptest OAuth server.
+		"auth_method": "oauth2", "auth_provider": "platform", "platform_base_url": baseURL,
+		"platform_environment_id": "environment-id", "client_id": "test-client",
+		"client_secret": "test-client-secret", "hide_sensitive_data": true,
+		"enable_client_sdk_logs": false, "jamfpro_load_balancer_lock": false,
+		"token_refresh_buffer_period_seconds": 0, "mandatory_request_delay_milliseconds": 0,
+	}
+}
+
 func TestProviderRequestHeadersAndTokenRefresh(t *testing.T) {
 	for _, framework := range []bool{false, true} {
 		t.Run(map[bool]string{false: "SDKv2", true: "Framework"}[framework], func(t *testing.T) {
@@ -131,6 +141,86 @@ func TestProviderRequestHeadersAndTokenRefresh(t *testing.T) {
 	}
 }
 
+func TestPlatformEnvironmentScopeUsesHeaderAndUnscopedPath(t *testing.T) {
+	for _, framework := range []bool{false, true} {
+		t.Run(map[bool]string{false: "SDKv2", true: "Framework"}[framework], func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				switch req.URL.Path {
+				case "/auth/token":
+					if req.Method != http.MethodPost {
+						t.Errorf("token request method = %s, want POST", req.Method)
+					}
+					if err := json.NewEncoder(w).Encode(map[string]any{"access_token": "platform-token", "expires_in": 3600}); err != nil {
+						t.Error(err)
+					}
+				case "/pro/v1/jamf-pro-version":
+					if got := req.Header.Get("X-Environment-Id"); got != "environment-id" {
+						t.Errorf("X-Environment-Id = %q, want environment-id", got)
+					}
+					if got := req.Header.Get("X-Tenant-Id"); got != "" {
+						t.Errorf("X-Tenant-Id = %q, want empty", got)
+					}
+					if req.Header.Get("Authorization") != "Bearer platform-token" {
+						t.Error("platform bearer token missing")
+					}
+					if err := json.NewEncoder(w).Encode(map[string]string{"version": "11.33.3"}); err != nil {
+						t.Error(err)
+					}
+				default:
+					t.Errorf("unexpected platform request path %q", req.URL.Path)
+					w.WriteHeader(http.StatusNotFound)
+				}
+			}))
+			defer server.Close()
+
+			client, failed := configureHeaderTestProvider(t, framework, platformEnvironmentTestConfig(server.URL))
+			require.False(t, failed, "provider configuration failed")
+			version, err := client.GetJamfProVersion()
+			require.NoError(t, err)
+			require.Equal(t, "11.33.3", *version.Version)
+		})
+	}
+}
+
+func TestPlatformScopeIDsAreMutuallyExclusiveAndRequired(t *testing.T) {
+	for _, framework := range []bool{false, true} {
+		t.Run(map[bool]string{false: "SDKv2", true: "Framework"}[framework], func(t *testing.T) {
+			t.Setenv("JAMFPRO_PLATFORM_TENANT_ID", "")
+			t.Setenv("JAMFPRO_PLATFORM_ENVIRONMENT_ID", "")
+			var calls atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				calls.Add(1)
+				w.WriteHeader(http.StatusUnauthorized)
+			}))
+			defer server.Close()
+
+			for _, tt := range []struct {
+				name          string
+				tenantID      string
+				environmentID string
+			}{
+				{name: "missing"},
+				{name: "both", tenantID: "tenant-id", environmentID: "environment-id"},
+			} {
+				t.Run(tt.name, func(t *testing.T) {
+					input := platformEnvironmentTestConfig(server.URL)
+					delete(input, "platform_environment_id")
+					if tt.tenantID != "" {
+						input["platform_tenant_id"] = tt.tenantID
+					}
+					if tt.environmentID != "" {
+						input["platform_environment_id"] = tt.environmentID
+					}
+					_, failed := configureHeaderTestProvider(t, framework, input)
+					require.True(t, failed, "configuration should reject missing or ambiguous scope")
+					require.Zero(t, calls.Load(), "scope validation should happen before authentication")
+				})
+			}
+		})
+	}
+}
+
 func TestProviderHeaderSchemasMatch(t *testing.T) {
 	ctx := context.Background()
 	legacy, err := tf5to6server.UpgradeServer(ctx, Provider().GRPCProvider)
@@ -143,11 +233,16 @@ func TestProviderHeaderSchemasMatch(t *testing.T) {
 	for _, d := range response.Diagnostics {
 		require.NotEqual(t, tfprotov6.DiagnosticSeverityError, d.Severity, "%s: %s", d.Summary, d.Detail)
 	}
-	foundTokenHeader, foundCustomHeaders := false, false
+	foundTokenHeader, foundCustomHeaders, foundPlatformEnvironmentID := false, false, false
 	for _, attribute := range response.Provider.Block.Attributes {
 		if attribute.Name == "bearer_token_header" {
 			foundTokenHeader = true
 			require.NotEmpty(t, attribute.Description)
+		}
+		if attribute.Name == "platform_environment_id" {
+			foundPlatformEnvironmentID = true
+			require.Contains(t, attribute.Description, "Preferred")
+			require.Contains(t, attribute.Description, "platform_tenant_id")
 		}
 	}
 	for _, block := range response.Provider.Block.BlockTypes {
@@ -164,6 +259,7 @@ func TestProviderHeaderSchemasMatch(t *testing.T) {
 	}
 	require.True(t, foundTokenHeader)
 	require.True(t, foundCustomHeaders)
+	require.True(t, foundPlatformEnvironmentID)
 }
 
 func TestProviderDefaultHeadersRemainUnchanged(t *testing.T) {

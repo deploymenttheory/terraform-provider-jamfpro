@@ -13,6 +13,7 @@ provider "jamfpro" {
   auth_provider                        = var.jamfpro_auth_provider
   platform_base_url                    = var.jamfpro_platform_base_url
   platform_tenant_id                   = var.jamfpro_platform_tenant_id
+  platform_environment_id              = var.jamfpro_platform_environment_id
   client_id                            = var.jamfpro_client_id
   client_secret                        = var.jamfpro_client_secret
   basic_auth_username                  = var.jamfpro_basic_auth_username
@@ -44,13 +45,20 @@ variable "jamfpro_auth_provider" {
 }
 
 variable "jamfpro_platform_base_url" {
-  description = "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.apigw.jamf.com"
+  description = "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.api.jamfcloud.com"
   type        = string
   default     = ""
 }
 
 variable "jamfpro_platform_tenant_id" {
-  description = "The Jamf Platform gateway tenant identifier (UUID). Required when auth_provider is 'platform'."
+  description = "The Jamf Platform tenant identifier (UUID). Use for tenant-scoped authentication; mutually exclusive with platform_environment_id."
+  sensitive   = true
+  type        = string
+  default     = ""
+}
+
+variable "jamfpro_platform_environment_id" {
+  description = "The Jamf Platform environment identifier (UUID). Preferred for cross-product platform access. Mutually exclusive with platform_tenant_id."
   sensitive   = true
   type        = string
   default     = ""

@@ -108,6 +108,7 @@ const (
 	envVarJamfProAuthProvider         = "JAMFPRO_AUTH_PROVIDER"
 	envVarPlatformBaseURL             = "JAMFPRO_PLATFORM_BASE_URL"
 	envVarPlatformTenantID            = "JAMFPRO_PLATFORM_TENANT_ID"
+	envVarPlatformEnvironmentID       = "JAMFPRO_PLATFORM_ENVIRONMENT_ID"
 	jamfLoadBalancerCookieName        = "jpro-ingress"
 )
 
@@ -345,14 +346,21 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc(envVarPlatformBaseURL, ""),
-				Description: "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.apigw.jamf.com",
+				Description: "The Jamf Platform gateway base URL. Required when auth_provider is 'platform'. Example: https://us.api.jamfcloud.com",
 			},
 			"platform_tenant_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
 				DefaultFunc: schema.EnvDefaultFunc(envVarPlatformTenantID, ""),
-				Description: "The Jamf Platform gateway tenant identifier (UUID). Required when auth_provider is 'platform'.",
+				Description: "The Jamf Platform tenant identifier (UUID). Use for tenant-scoped authentication; mutually exclusive with platform_environment_id.",
+			},
+			"platform_environment_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				DefaultFunc: schema.EnvDefaultFunc(envVarPlatformEnvironmentID, ""),
+				Description: "The Jamf Platform environment identifier (UUID). Preferred for cross-product platform access. Mutually exclusive with platform_tenant_id; exactly one scope ID is required when auth_provider is 'platform'.",
 			},
 			"enable_client_sdk_logs": {
 				Type:        schema.TypeBool,
@@ -640,22 +648,31 @@ func Provider() *schema.Provider {
 				})
 			}
 			platformTenantID := d.Get("platform_tenant_id").(string)
-			if platformTenantID == "" {
+			platformEnvironmentID := d.Get("platform_environment_id").(string)
+			if platformTenantID != "" && platformEnvironmentID != "" {
 				return nil, append(diags, diag.Diagnostic{
 					Severity: diag.Error,
-					Summary:  "Error getting platform tenant ID",
-					Detail:   "platform_tenant_id must be provided either as an environment variable (JAMFPRO_PLATFORM_TENANT_ID) or in the Terraform configuration when auth_provider is 'platform'",
+					Summary:  "Invalid platform scope",
+					Detail:   "platform_tenant_id and platform_environment_id are mutually exclusive; configure only one when auth_provider is 'platform'",
+				})
+			}
+			if platformTenantID == "" && platformEnvironmentID == "" {
+				return nil, append(diags, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  "Error getting platform scope ID",
+					Detail:   "Exactly one of platform_environment_id (preferred) or platform_tenant_id must be provided either in the Terraform configuration or with JAMFPRO_PLATFORM_ENVIRONMENT_ID or JAMFPRO_PLATFORM_TENANT_ID when auth_provider is 'platform'",
 				})
 			}
 			clientId = GetClientID(d, &diags)
 			clientSecret = GetClientSecret(d, &diags)
-			jamfIntegration, err = jamfprointegration.BuildWithPlatformGatewayOAuth(
+			jamfIntegration, err = jamfprointegration.BuildWithPlatformGatewayOAuthWithScope(
 				platformBaseURL,
 				sugaredLogger,
 				tokenRefrshBufferPeriod,
 				clientId,
 				clientSecret,
 				platformTenantID,
+				platformEnvironmentID,
 				hide_sensitive_data,
 				bootstrapClient,
 			)
