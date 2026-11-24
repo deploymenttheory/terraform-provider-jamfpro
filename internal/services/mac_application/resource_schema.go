@@ -39,8 +39,9 @@ func resourceSchema() *schema.Resource {
 			},
 			"version": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The version of the application.",
+				Optional:    true,
+				Computed:    true,
+				Description: "The version of the application. For Mac App Store apps Jamf Pro updates this automatically, so omit it to use the version Jamf Pro reports.",
 			},
 			"bundle_id": {
 				Type:        schema.TypeString,
@@ -77,7 +78,8 @@ func resourceSchema() *schema.Resource {
 						"self_service_description": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "The self service description.",
+							Computed:    true,
+							Description: "The self service description. For Mac App Store apps Jamf Pro can update this automatically, so omit it to use the description Jamf Pro reports.",
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								return utils.NormalizeWhitespace(old) == utils.NormalizeWhitespace(new)
 							},
@@ -148,6 +150,7 @@ func resourceSchema() *schema.Resource {
 						"self_service_icon": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
