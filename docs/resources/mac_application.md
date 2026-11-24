@@ -62,7 +62,6 @@ Stop by and learn more at: https://slack.com/
 - `bundle_id` (String) The bundle identifier of the application.
 - `name` (String) The name of the mac application.
 - `scope` (Block List, Min: 1, Max: 1) The scope of the mac application. (see [below for nested schema](#nestedblock--scope))
-- `version` (String) The version of the application.
 
 ### Optional
 
@@ -73,6 +72,7 @@ Stop by and learn more at: https://slack.com/
 - `site_id` (Number) Jamf Pro Site-related settings of the policy.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `url` (String) The URL of the application.
+- `version` (String) The version of the application. For Mac App Store apps Jamf Pro updates this automatically, so omit it to use the version Jamf Pro reports.
 - `vpp` (Block List, Max: 1) (see [below for nested schema](#nestedblock--vpp))
 
 ### Read-Only
@@ -139,7 +139,7 @@ Optional:
 - `notification_message` (String) The message of the notification.
 - `notification_subject` (String) The subject of the notification.
 - `self_service_category` (Block Set) (see [below for nested schema](#nestedblock--self_service--self_service_category))
-- `self_service_description` (String) The self service description.
+- `self_service_description` (String) The self service description. For Mac App Store apps Jamf Pro can update this automatically, so omit it to use the description Jamf Pro reports.
 - `self_service_icon` (Block List, Max: 1) (see [below for nested schema](#nestedblock--self_service--self_service_icon))
 
 <a id="nestedblock--self_service--self_service_category"></a>
