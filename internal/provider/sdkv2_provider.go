@@ -9,9 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
-	"github.com/deploymenttheory/go-api-http-client/httpclient"
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/sdk"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/access_management_settings"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/account"
 	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/services/account_driven_user_enrollment_settings"
@@ -548,7 +546,7 @@ func Provider() *schema.Provider {
 	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		var err error
 		var diags diag.Diagnostics
-		var jamfIntegration *jamfprointegration.Integration
+		var jamfIntegration *sdk.Integration
 		var jamfFQDN,
 			clientId,
 			clientSecret,
@@ -649,7 +647,7 @@ func Provider() *schema.Provider {
 			}
 			clientId = GetClientID(d, &diags)
 			clientSecret = GetClientSecret(d, &diags)
-			jamfIntegration, err = jamfprointegration.BuildWithPlatformGatewayOAuth(
+			jamfIntegration, err = sdk.BuildWithPlatformGatewayOAuth(
 				platformBaseURL,
 				sugaredLogger,
 				tokenRefrshBufferPeriod,
@@ -666,7 +664,7 @@ func Provider() *schema.Provider {
 				jamfFQDN = GetJamfFqdn(d, &diags)
 				clientId = GetClientID(d, &diags)
 				clientSecret = GetClientSecret(d, &diags)
-				jamfIntegration, err = jamfprointegration.BuildWithOAuth(
+				jamfIntegration, err = sdk.BuildWithOAuth(
 					jamfFQDN,
 					sugaredLogger,
 					tokenRefrshBufferPeriod,
@@ -680,7 +678,7 @@ func Provider() *schema.Provider {
 				jamfFQDN = GetJamfFqdn(d, &diags)
 				basicAuthUsername = GetBasicAuthUsername(d, &diags)
 				basicAuthPassword = GetBasicAuthPassword(d, &diags)
-				jamfIntegration, err = jamfprointegration.BuildWithBasicAuth(
+				jamfIntegration, err = sdk.BuildWithBasicAuth(
 					jamfFQDN,
 					sugaredLogger,
 					tokenRefrshBufferPeriod,
@@ -795,7 +793,7 @@ func Provider() *schema.Provider {
 		}
 
 		// Packaging
-		config := httpclient.ClientConfig{
+		config := sdk.HTTPClientConfig{
 			Integration:              jamfIntegration,
 			Sugar:                    sugaredLogger,
 			HideSensitiveData:        d.Get("hide_sensitive_data").(bool),
@@ -812,11 +810,9 @@ func Provider() *schema.Provider {
 			return nil, append(diags, diag.FromErr(err)...)
 		}
 
-		jamfProSdk := jamfpro.Client{
-			HTTP: httpClient,
-		}
+		jamfProSdk := sdk.NewClient(httpClient)
 
-		warning, err := CheckJamfProVersion(&jamfProSdk)
+		warning, err := CheckJamfProVersion(jamfProSdk)
 		if err != nil {
 			return nil, append(diags, diag.Diagnostic{
 				Severity: diag.Error,
@@ -832,7 +828,7 @@ func Provider() *schema.Provider {
 			})
 		}
 
-		return &jamfProSdk, diags
+		return jamfProSdk, diags
 	}
 
 	return provider

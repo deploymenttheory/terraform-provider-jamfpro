@@ -7,9 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deploymenttheory/go-api-http-client-integrations/jamf/jamfprointegration"
-	"github.com/deploymenttheory/go-api-http-client/httpclient"
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -340,11 +338,11 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 		resp.Diagnostics.AddError("Invalid request header configuration", err.Error())
 		return
 	}
-	var jamfIntegration *jamfprointegration.Integration
+	var jamfIntegration *sdk.Integration
 
 	switch authProvider {
 	case "platform":
-		jamfIntegration, err = jamfprointegration.BuildWithPlatformGatewayOAuth(
+		jamfIntegration, err = sdk.BuildWithPlatformGatewayOAuth(
 			platformBaseURL,
 			sugaredLogger,
 			tokenRefreshBuffer,
@@ -357,7 +355,7 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 	case "direct":
 		switch authMethod {
 		case "oauth2":
-			jamfIntegration, err = jamfprointegration.BuildWithOAuth(
+			jamfIntegration, err = sdk.BuildWithOAuth(
 				instanceFQDN,
 				sugaredLogger,
 				tokenRefreshBuffer,
@@ -367,7 +365,7 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 				bootstrapClient,
 			)
 		case "basic":
-			jamfIntegration, err = jamfprointegration.BuildWithBasicAuth(
+			jamfIntegration, err = sdk.BuildWithBasicAuth(
 				instanceFQDN,
 				sugaredLogger,
 				tokenRefreshBuffer,
@@ -432,7 +430,7 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 	}
 
 	// Build HTTP client configuration - exactly matching SDKv2 provider
-	clientConfig := httpclient.ClientConfig{
+	clientConfig := sdk.HTTPClientConfig{
 		Integration:              jamfIntegration,
 		Sugar:                    sugaredLogger,
 		HideSensitiveData:        hideSensitiveData,
@@ -454,11 +452,9 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 	}
 
 	// Create Jamf Pro SDK client - mirroring SDKv2 provider logic
-	jamfProSdk := jamfpro.Client{
-		HTTP: httpClient,
-	}
+	jamfProSdk := sdk.NewClient(httpClient)
 
-	warning, err := CheckJamfProVersion(&jamfProSdk)
+	warning, err := CheckJamfProVersion(jamfProSdk)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to verify Jamf Pro version",
@@ -474,6 +470,6 @@ func (p *frameworkProvider) Configure(ctx context.Context, req provider.Configur
 	}
 
 	// Store client for use by resources and data sources
-	resp.ResourceData = &jamfProSdk
-	resp.DataSourceData = &jamfProSdk
+	resp.ResourceData = jamfProSdk
+	resp.DataSourceData = jamfProSdk
 }

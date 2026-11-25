@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/sdk"
 	"github.com/hashicorp/go-version"
 )
 
@@ -13,7 +13,7 @@ const MinimumSupportedJamfProVersion = "11.22.0"
 
 // CheckJamfProVersion validates that the Jamf Pro instance version meets minimum requirements
 // Returns a warning message if the version is below minimum supported, or error if version cannot be determined
-func CheckJamfProVersion(client *jamfpro.Client) (warning string, err error) {
+func CheckJamfProVersion(client sdk.Client) (warning string, err error) {
 
 	versionResp, err := client.GetJamfProVersion()
 	if err != nil {

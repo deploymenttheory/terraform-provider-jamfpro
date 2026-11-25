@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/deploymenttheory/go-api-http-client/httpclient"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/sdk"
 )
 
 var (
@@ -19,15 +19,15 @@ type customHeaderModel struct {
 	Value string `tfsdk:"value"`
 }
 
-func requestHeaderConfig(headers []customHeaderModel, tokenHeader, authMethod string) (httpclient.RequestHeaderConfig, error) {
-	result := httpclient.RequestHeaderConfig{BearerTokenHeader: tokenHeader, CustomHeaders: make(map[string]string, len(headers))}
+func requestHeaderConfig(headers []customHeaderModel, tokenHeader, authMethod string) (sdk.RequestHeaderConfig, error) {
+	result := sdk.RequestHeaderConfig{BearerTokenHeader: tokenHeader, CustomHeaders: make(map[string]string, len(headers))}
 	for _, header := range headers {
 		name := http.CanonicalHeaderKey(header.Name)
 		if _, exists := result.CustomHeaders[name]; exists {
-			return httpclient.RequestHeaderConfig{}, fmt.Errorf("%w: %s", errDuplicateCustomHeader, name)
+			return sdk.RequestHeaderConfig{}, fmt.Errorf("%w: %s", errDuplicateCustomHeader, name)
 		}
 		if authMethod == "basic" && strings.EqualFold(name, "Authorization") {
-			return httpclient.RequestHeaderConfig{}, errBasicProxyHeader
+			return sdk.RequestHeaderConfig{}, errBasicProxyHeader
 		}
 		result.CustomHeaders[name] = header.Value
 	}

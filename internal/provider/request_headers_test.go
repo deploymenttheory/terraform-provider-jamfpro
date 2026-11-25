@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/deploymenttheory/go-api-sdk-jamfpro/sdk/jamfpro"
+	"github.com/deploymenttheory/terraform-provider-jamfpro/internal/sdk"
 	frameworkprovider "github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -46,7 +46,7 @@ func headerConfigValue(ty tftypes.Type, input any) tftypes.Value {
 	}
 }
 
-func configureHeaderTestProvider(t *testing.T, framework bool, input map[string]any) (*jamfpro.Client, bool) {
+func configureHeaderTestProvider(t *testing.T, framework bool, input map[string]any) (sdk.Client, bool) {
 	t.Helper()
 	ctx := context.Background()
 	if !framework {
@@ -56,7 +56,7 @@ func configureHeaderTestProvider(t *testing.T, framework bool, input map[string]
 		if diags.HasError() {
 			return nil, true
 		}
-		return client.(*jamfpro.Client), false
+		return client.(sdk.Client), false
 	}
 	p := FrameworkProvider("test")()
 	var definition frameworkprovider.SchemaResponse
@@ -70,7 +70,7 @@ func configureHeaderTestProvider(t *testing.T, framework bool, input map[string]
 	if response.Diagnostics.HasError() {
 		return nil, true
 	}
-	return response.ResourceData.(*jamfpro.Client), false
+	return response.ResourceData.(sdk.Client), false
 }
 
 func headerTestConfig(baseURL string) map[string]any {
